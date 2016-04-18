@@ -20,10 +20,6 @@ type Service struct {
 	DependsOn string
 }
 
-type services struct {
-	Services []Service
-}
-
 // Project is the struct of the project to build
 type Project struct {
 	RepoURL        string
@@ -39,7 +35,7 @@ type Project struct {
 // Config is a struct to parse the TOML config into
 type Config struct {
 	Project  Project
-	Services services
+	Services []Service
 }
 
 func readConfig(path string) ([]byte, error) {
@@ -48,13 +44,13 @@ func readConfig(path string) ([]byte, error) {
 
 // LoadConfig reads the config and returns a Config struct
 func LoadConfig(path string) (Config, error) {
+	var conf Config
 	confData, readErr := readConfig(path)
 	if readErr != nil {
-		return nil, readErr
+		return conf, readErr
 	}
-	var conf Config
-	if _, pErr := toml.Decode(confData, &conf); pErr != nil {
-		return nil, pErr
+	if _, pErr := toml.Decode((string)(confData), &conf); pErr != nil {
+		return conf, pErr
 	}
 	return conf, nil
 }

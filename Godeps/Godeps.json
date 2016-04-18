@@ -2,13 +2,18 @@
 	"ImportPath": "github.com/cpg1111/maestro",
 	"GoVersion": "go1.4.2",
 	"Packages": [
-		"./..."
+        "./...",
+		"github.com/fatih/structs"
 	],
 	"Deps": [
-		{
-			"ImportPath": "github.com/BurntSushi/toml",
-			"Comment": "v0.2.0",
-			"Rev": "bbd5bb678321a0d6e58f1099321dfa73391c1b6f"
-		}
+        {
+            "ImportPath": "github.com/BurntSushi/toml",
+            "Comment": "v0.2.0",
+            "Rev": "bbd5bb678321a0d6e58f1099321dfa73391c1b6f"
+        },
+        {
+            "ImportPath": "github.com/fatih/structs",
+            "Rev": "73c4e3dc02a78deaba8640d5f3a8c236ec1352bf"
+        }
 	]
 }
