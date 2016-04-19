@@ -20,17 +20,17 @@ func checkStructs(test, expected interface{}) error {
 	return nil
 }
 
-func TestLoadConfig(t *testing.T) {
+func TestLoad(t *testing.T) {
 	expected := &Config{
 		Project: Project{
 			RepoURL:        "git@github.com:cpg1111/maestro.git",
 			CloneCMD:       "git clone",
 			AuthType:       "SSH",
 			SSHPrivKeyPath: "~/.ssh/id_rsa",
-			SSHPubKeyPath:  "~/.ssh/id_rsa.path",
+			SSHPubKeyPath:  "~/.ssh/id_rsa.pub",
 			Username:       "",
 			Password:       "",
-			PromptForPWD:   true,
+			PromptForPWD:   false,
 		},
 		Services: []Service{
 			Service{
@@ -47,7 +47,7 @@ func TestLoadConfig(t *testing.T) {
 			},
 		},
 	}
-	conf, loadErr := LoadConfig("./test_conf.toml")
+	conf, loadErr := Load("../test_conf.toml")
 	if loadErr != nil {
 		t.Error(loadErr)
 	}

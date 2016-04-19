@@ -3,10 +3,10 @@ RepoURL="git@github.com:cpg1111/maestro.git"
 CloneCMD="git clone"
 AuthType="SSH"
 SSHPrivKeyPath="~/.ssh/id_rsa"
-SSHPubKeyPath="~/.ssh/id_rsa.path"
+SSHPubKeyPath="~/.ssh/id_rsa.pub"
 Username=""
 Password=""
-PromptForPWD=true
+PromptForPWD=false
 
 [[Services]]
 Name="test"

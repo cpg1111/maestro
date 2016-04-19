@@ -42,8 +42,8 @@ func readConfig(path string) ([]byte, error) {
 	return ioutil.ReadFile(path)
 }
 
-// LoadConfig reads the config and returns a Config struct
-func LoadConfig(path string) (Config, error) {
+// Load reads the config and returns a Config struct
+func Load(path string) (Config, error) {
 	var conf Config
 	confData, readErr := readConfig(path)
 	if readErr != nil {
