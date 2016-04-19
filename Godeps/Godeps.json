@@ -9,6 +9,27 @@
 			"ImportPath": "github.com/BurntSushi/toml",
 			"Comment": "v0.2.0",
 			"Rev": "bbd5bb678321a0d6e58f1099321dfa73391c1b6f"
+		},
+		{
+			"ImportPath": "github.com/fatih/structs",
+			"Rev": "73c4e3dc02a78deaba8640d5f3a8c236ec1352bf"
+		},
+		{
+			"ImportPath": "github.com/howeyc/gopass",
+			"Rev": "66487b23f2880ba32e185121d2cd51a338ea069a"
+		},
+		{
+			"ImportPath": "github.com/segmentio/go-prompt",
+			"Comment": "v1.2.0-4-gf3218e4",
+			"Rev": "f3218e418a3d6dbe1dcab5809d80fa6e15c05cb4"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/ssh/terminal",
+			"Rev": "1777f3ba8c1fed80fcaec3317e3aaa4f627764d2"
+		},
+		{
+			"ImportPath": "gopkg.in/libgit2/git2go.v22",
+			"Rev": "41ad00f868e7dfcdb04c7538f27350d400f710a3"
 		}
 	]
 }

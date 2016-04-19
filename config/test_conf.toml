@@ -1,9 +1,0 @@
-[Project]
-RepoURL="git@github.com:cpg1111/maestro.git"
-CloneCMD="git clone"
-AuthType="SSH"
-SSHPrivKeyPath="~/.ssh/id_rsa"
-SSHPubKeyPath="~/.ssh/id_rsa.path"
-Username=""
-Password=""
-PromptForPWD=true

@@ -3,11 +3,13 @@ package credentials
 import (
 	"io/ioutil"
 	"log"
+	"os/user"
+	"strings"
 
 	"github.com/cpg1111/maestro/config"
 
-	git "github.com/libgit2/git2go"
 	prompt "github.com/segmentio/go-prompt"
+	git "gopkg.in/libgit2/git2go.v22"
 )
 
 // RawCredentials is a struct for any credentials
@@ -21,22 +23,33 @@ type RawCredentials struct {
 
 // ToGitCredentials converts RawCredentials to Git credentials
 func (rc *RawCredentials) ToGitCredentials() git.Cred {
+	var num int
+	var creds git.Cred
 	switch rc.project.AuthType {
 	case "SSH":
-		num, creds := git.NewCredSshKey(rc.Username, rc.SSHPubKey, rc.SSHPrivKey, rc.Password)
+		num, creds = git.NewCredSshKey(rc.Username, rc.SSHPubKey, rc.SSHPrivKey, rc.Password)
 		log.Println(num)
 		return creds
 	case "HTTP":
-		num, creds := git.NewCredUserpassPlaintext(rc.Username, rc.Password)
+		num, creds = git.NewCredUserpassPlaintext(rc.Username, rc.Password)
 		log.Println(num)
 		return creds
 	}
+	return creds
 }
 
 func readKey(path string) (string, error) {
-	keyBytes, readErr := ioutil.ReadFile(path)
+	fullPath := path
+	if strings.Contains(path, "~") {
+		currUser, uErr := user.Current()
+		if uErr != nil {
+			return "", uErr
+		}
+		fullPath = strings.Replace(path, "~", currUser.HomeDir, 1)
+	}
+	keyBytes, readErr := ioutil.ReadFile(fullPath)
 	if readErr != nil {
-		return nil, error
+		return "", readErr
 	}
 	key := (string)(keyBytes)
 	return key, nil

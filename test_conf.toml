@@ -1,0 +1,21 @@
+[Project]
+RepoURL="git@github.com:cpg1111/maestro.git"
+CloneCMD="git clone"
+AuthType="SSH"
+SSHPrivKeyPath="~/.ssh/id_rsa"
+SSHPubKeyPath="~/.ssh/id_rsa.pub"
+Username=""
+Password=""
+PromptForPWD=false
+
+[[Services]]
+Name="test"
+Tag="0.0.1"
+TagType=""
+Path="."
+BuildCMD="docker build -t test ."
+TestCMD="go test -v ./..."
+CheckCMD="[ $(docker ps -a | grep test | wc -w) -gte 1 ]"
+CreateCMD="docker run -n test -d test"
+UpdateCMD="docker rm -f test && docker run -n test -d test"
+DependsOn=""
