@@ -57,4 +57,5 @@ clean:
 test:
 	go test -v ./...
 uninstall:
+	rm -rf /etc/maestro
 	rm -rf /usr/bin/maestro
