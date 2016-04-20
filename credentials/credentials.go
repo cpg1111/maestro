@@ -1,7 +1,6 @@
 package credentials
 
 import (
-	"io/ioutil"
 	"log"
 	"os/user"
 	"strings"
@@ -27,6 +26,7 @@ func (rc *RawCredentials) ToGitCredentials() git.Cred {
 	var creds git.Cred
 	switch rc.project.AuthType {
 	case "SSH":
+		log.Println(rc.SSHPubKey, rc.SSHPrivKey)
 		num, creds = git.NewCredSshKey(rc.Username, rc.SSHPubKey, rc.SSHPrivKey, rc.Password)
 		log.Println(num)
 		return creds
@@ -47,12 +47,7 @@ func readKey(path string) (string, error) {
 		}
 		fullPath = strings.Replace(path, "~", currUser.HomeDir, 1)
 	}
-	keyBytes, readErr := ioutil.ReadFile(fullPath)
-	if readErr != nil {
-		return "", readErr
-	}
-	key := (string)(keyBytes)
-	return key, nil
+	return fullPath, nil
 }
 
 // NewCreds returns a pointer to a new instance of RawCredentials

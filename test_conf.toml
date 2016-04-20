@@ -4,7 +4,7 @@ CloneCMD="git clone"
 AuthType="SSH"
 SSHPrivKeyPath="~/.ssh/id_rsa"
 SSHPubKeyPath="~/.ssh/id_rsa.pub"
-Username=""
+Username="git"
 Password=""
 PromptForPWD=false
 
