@@ -26,7 +26,6 @@ func (rc *RawCredentials) ToGitCredentials() git.Cred {
 	var creds git.Cred
 	switch rc.project.AuthType {
 	case "SSH":
-		log.Println(rc.SSHPubKey, rc.SSHPrivKey)
 		num, creds = git.NewCredSshKey(rc.Username, rc.SSHPubKey, rc.SSHPrivKey, rc.Password)
 		log.Println(num)
 		return creds
