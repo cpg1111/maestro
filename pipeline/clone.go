@@ -2,7 +2,6 @@ package pipeline
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/cpg1111/maestro/config"
@@ -23,6 +22,16 @@ type Project struct {
 	CloneOpts *git.CloneOptions
 }
 
+func credCB(gitCreds *git.Cred) git.CredentialsCallback {
+	return func(url string, username string, allowedTypes git.CredType) (git.ErrorCode, *git.Cred) {
+		return 0, gitCreds
+	}
+}
+
+func certCheckCB(cert *git.Certificate, valid bool, hostname string) git.ErrorCode {
+	return 0
+}
+
 // New returns a new instance of a pipeline project
 func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, branch string) *Project {
 	newServices := make(map[string]*Service)
@@ -36,16 +45,13 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 	gitCreds := creds.ToGitCredentials()
 	cloneOpts := &git.CloneOptions{
 		RemoteCallbacks: &git.RemoteCallbacks{
-			CredentialsCallback: func(url string, username string, allowedTypes git.CredType) (git.ErrorCode, *git.Cred) {
-				log.Println(url, username)
-				return 0, &gitCreds
-			},
-			CertificateCheckCallback: func(cert *git.Certificate, valid bool, hostname string) git.ErrorCode {
-				return 0
-			},
+			CredentialsCallback:      credCB(&gitCreds),
+			CertificateCheckCallback: certCheckCB,
 		},
-		CheckoutOpts:   &git.CheckoutOpts{},
-		Bare:           true,
+		CheckoutOpts: &git.CheckoutOpts{
+			Strategy: git.CheckoutSafeCreate,
+		},
+		Bare:           false,
 		CheckoutBranch: branch,
 	}
 	//conf.CloneOpts.RemoteCreateCallback = createRemote
@@ -63,10 +69,5 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 
 // Clone clones a git repo
 func (p *Project) Clone(opts *git.CloneOptions) (*git.Repository, error) {
-	return git.Clone(p.conf.RepoURL, p.clonePath, opts)
-}
-
-// Unpack Git repo
-func (p *Project) Unpack() {
-
+	return git.Clone(p.conf.RepoURL, fmt.Sprintf("%s.git/", p.clonePath), opts)
 }
