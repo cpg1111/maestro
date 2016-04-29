@@ -43,7 +43,7 @@ func TestLoad(t *testing.T) {
 				CheckCMD:  "[ $(docker ps -a | grep test | wc -w) -gte 1 ]",
 				CreateCMD: "docker run -n test -d test",
 				UpdateCMD: "docker rm -f test && docker run -n test -d test",
-				DependsOn: "",
+				DependsOn: []string{""},
 			},
 		},
 	}

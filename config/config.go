@@ -17,7 +17,7 @@ type Service struct {
 	CheckCMD  string
 	CreateCMD string
 	UpdateCMD string
-	DependsOn string
+	DependsOn []string
 }
 
 // Project is the struct of the project to build

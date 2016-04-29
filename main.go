@@ -29,5 +29,7 @@ func main() {
 	if cloneErr != nil {
 		log.Fatal(cloneErr)
 	}
+	depTrees := pipeline.NewTreeList(pipe)
 	log.Println(repo)
+	log.Println(depTrees)
 }
