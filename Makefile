@@ -30,16 +30,22 @@ else
 endif
 all: build
 get-deps:
-	curl https://github.com/libgit2/libgit2/archive/v0.22.0.tar.gz | tar xvzf
-	cd libgit2-0.22.0
-	mkdir build
-	cmake ..
-	cmake --build .
-	make install
+	curl -L https://github.com/libgit2/libgit2/archive/v0.22.0.tar.gz > v0.22.0.tar.gz
+	tar xzvf v0.22.0.tar.gz
+	cd libgit2-0.22.0 && \
+	pwd && \
+	mkdir build && \
+	cd build && \
+	pwd && \
+	cmake .. && \
+	cmake --build . && \
+	make install && \
 	cd -
 	rm -rf libgit2-0.22.0
 	rm v0.22.0.tar.gz
-	go get github.com/tools/godep
+	cd ${GOPATH} && \
+	go get github.com/tools/godep && \
+	cd -
 	rm -rf ./Godeps/_workspace/
 	godep restore ./...
 build:
@@ -47,11 +53,10 @@ build:
 	godep restore ./...
 	go build --ldflags '-w' -o maestro github.com/cpg1111/maestro/
 	$(LDD_CMD) ./maestro
-	file ./maestro
 install:
 	cp ./maestro /usr/bin/maestro
 	mkdir /etc/maestro/
-	cp ./conf.toml /etc/maestro/
+	cp ./test_conf.toml /etc/maestro/conf.toml
 clean:
 	rm -rf $GOPATH/bin/github.com/cpg1111/maestro $GOPATH/pkg/github.com/cpg1111/maestro $GOPATH/src/github.com/cpg1111/kubongo/maestro
 test:
