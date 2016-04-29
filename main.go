@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 
 	"github.com/cpg1111/maestro/config"
 	"github.com/cpg1111/maestro/credentials"
@@ -16,7 +17,7 @@ var checkoutBranch = flag.String("branch", "master", "Git branch to checkout for
 func main() {
 	flag.Parse()
 	log.Println("Running")
-	conf, confErr := config.Load(*confPath)
+	conf, confErr := config.Load(*confPath, *clonePath)
 	if confErr != nil {
 		log.Fatal(confErr)
 	}
@@ -30,6 +31,11 @@ func main() {
 		log.Fatal(cloneErr)
 	}
 	depTrees := pipeline.NewTreeList(pipe)
-	log.Println(repo)
-	log.Println(depTrees)
+	buildErr := pipeline.RunBuild(depTrees)
+	if buildErr != nil {
+		log.Fatal(buildErr)
+	}
+	os.RemoveAll(*clonePath)
+	log.Println(*repo)
+	log.Println(*depTrees[0].CurrNode)
 }
