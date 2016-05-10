@@ -6,15 +6,15 @@ type DepTree struct {
 }
 
 // TraverseTree traverses a dependency tree
-func TraverseTree(depSrv *DepService) error {
-	shouldBuild, buildErr := depSrv.build.ShouldBuild()
+func TraverseTree(depSrv *DepService, lastBuildCommit string) error {
+	shouldBuild, buildErr := depSrv.build.ShouldBuild(lastBuildCommit)
 	if buildErr != nil {
 		return buildErr
 	}
 	if shouldBuild {
 		for i := range depSrv.Children {
 			depSrv.Children[i].build.shouldBuild = true
-			travErr := TraverseTree(depSrv.Children[i])
+			travErr := TraverseTree(depSrv.Children[i], lastBuildCommit)
 			if travErr != nil {
 				return travErr
 			}

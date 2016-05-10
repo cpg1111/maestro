@@ -20,10 +20,13 @@ func runServiceBuild(srvs map[string]*DepService) error {
 }
 
 // RunBuild runs the build for all changed services
-func RunBuild(depTrees []*DepTree) error {
+func RunBuild(depTrees []*DepTree, lastBuildCommit string) error {
 	log.Println("run")
 	for i := range depTrees {
-		TraverseTree(depTrees[i].CurrNode)
+		travErr := TraverseTree(depTrees[i].CurrNode, lastBuildCommit)
+		if travErr != nil {
+			return travErr
+		}
 		log.Println(i+1, "tree")
 		rootMap := make(map[string]*DepService)
 		rootMap["root"] = depTrees[i].CurrNode

@@ -36,8 +36,24 @@ func NewService(srv config.Service, creds *credentials.RawCredentials) *Service 
 }
 
 // ShouldBuild diffs a service's path and determs whether or not it needs to run the pipeline on it
-func (s *Service) ShouldBuild() (bool, error) {
-	s.shouldBuild = true
+func (s *Service) ShouldBuild(lastBuildCommit string) (bool, error) {
+	log.Println("DIFF")
+	diffCMD := exec.Command("git", "diff", "--raw", lastBuildCommit, s.conf.Path)
+	// diffCMD.Stdout = os.Stdout
+	// diffCMD.Stderr = os.Stderr
+	output, outErr := diffCMD.Output()
+	if outErr != nil {
+		return false, outErr
+	}
+	log.Println("RUNNING DIFF")
+	// diffErr := diffCMD.Run()
+	// if diffErr != nil {
+	// 	return false, diffErr
+	// }
+	log.Println("DIFF OUTPUT: ", (string)(output))
+	if len(output) == 0 {
+		return false, nil
+	}
 	return true, nil
 }
 

@@ -10,12 +10,19 @@ import (
 	"github.com/cpg1111/maestro/pipeline"
 )
 
-var confPath = flag.String("config", "./conf.toml", "Path to the config for maestro to use")
-var clonePath = flag.String("clone-path", "./", "Local path to clone repo to defaults to PWD")
-var checkoutBranch = flag.String("branch", "master", "Git branch to checkout for project")
+var (
+	confPath        = flag.String("config", "./conf.toml", "Path to the config for maestro to use")
+	clonePath       = flag.String("clone-path", "./", "Local path to clone repo to defaults to PWD")
+	checkoutBranch  = flag.String("branch", "master", "Git branch to checkout for project")
+	lastBuildCommit = flag.String("prev-commit", "", "Previous commit to compare to")
+)
 
 func main() {
 	flag.Parse()
+	if *lastBuildCommit == "" {
+		log.Println("Maestro requires a previous commit to build from.")
+		os.Exit(1)
+	}
 	log.Println("Running")
 	conf, confErr := config.Load(*confPath, *clonePath)
 	if confErr != nil {
@@ -31,8 +38,9 @@ func main() {
 		log.Fatal(cloneErr)
 	}
 	depTrees := pipeline.NewTreeList(pipe)
-	buildErr := pipeline.RunBuild(depTrees)
+	buildErr := pipeline.RunBuild(depTrees, *lastBuildCommit)
 	if buildErr != nil {
+		os.RemoveAll(*clonePath)
 		log.Fatal(buildErr)
 	}
 	os.RemoveAll(*clonePath)
