@@ -15,6 +15,10 @@ func runServiceBuild(srvs map[string]*DepService) error {
 			if err != nil {
 				return err
 			}
+			err = RunTests(srvs[i].build)
+			if err != nil {
+				return err
+			}
 			if len(srvs[i].Children) > 0 {
 				runServiceBuild(srvs[i].Children)
 			}
@@ -23,8 +27,8 @@ func runServiceBuild(srvs map[string]*DepService) error {
 	return nil
 }
 
-// RunBuild runs the build for all changed services
-func RunBuild(depTrees []*DepTree, repo *git.Repository, lastBuildCommit string) error {
+// Run runs the build for all changed services
+func Run(depTrees []*DepTree, repo *git.Repository, lastBuildCommit string) error {
 	log.Println("run")
 	for i := range depTrees {
 		travErr := TraverseTree(depTrees[i].CurrNode, repo, lastBuildCommit)
