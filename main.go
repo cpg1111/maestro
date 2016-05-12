@@ -38,11 +38,12 @@ func main() {
 		log.Fatal(cloneErr)
 	}
 	depTrees := pipeline.NewTreeList(pipe)
-	buildErr := pipeline.RunBuild(depTrees, repo, *lastBuildCommit)
+	buildErr := pipeline.Run(depTrees, repo, *lastBuildCommit)
 	if buildErr != nil {
 		os.RemoveAll(*clonePath)
 		log.Fatal(buildErr)
 	}
+
 	os.RemoveAll(*clonePath)
 	log.Println(*repo)
 	log.Println(*depTrees[0].CurrNode)
