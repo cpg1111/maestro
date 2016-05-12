@@ -19,6 +19,10 @@ func runServiceBuild(srvs map[string]*DepService) error {
 			if err != nil {
 				return err
 			}
+			err = check(srvs[i].build)
+			if err != nil {
+				return err
+			}
 			if len(srvs[i].Children) > 0 {
 				runServiceBuild(srvs[i].Children)
 			}
