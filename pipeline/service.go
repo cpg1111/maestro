@@ -36,24 +36,38 @@ func NewService(srv config.Service, creds *credentials.RawCredentials) *Service 
 }
 
 // ShouldBuild diffs a service's path and determs whether or not it needs to run the pipeline on it
-func (s *Service) ShouldBuild(lastBuildCommit string) (bool, error) {
-	log.Println("DIFF")
-	diffCMD := exec.Command("git", "diff", "--raw", lastBuildCommit, s.conf.Path)
-	// diffCMD.Stdout = os.Stdout
-	// diffCMD.Stderr = os.Stderr
-	output, outErr := diffCMD.Output()
-	if outErr != nil {
-		return false, outErr
+func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit string) (bool, error) {
+	log.Println("diff")
+	prevCommitObject, _, parseErr := repo.RevparseExt(lastBuildCommit)
+	if parseErr != nil {
+		return false, parseErr
 	}
-	log.Println("RUNNING DIFF")
-	// diffErr := diffCMD.Run()
-	// if diffErr != nil {
-	// 	return false, diffErr
-	// }
-	log.Println("DIFF OUTPUT: ", (string)(output))
-	if len(output) == 0 {
+	prevCommitID := prevCommitObject.Id()
+	prevCommit, lookupErr := repo.LookupCommit(prevCommitID)
+	if lookupErr != nil {
+		return false, lookupErr
+	}
+	prevTree, treeErr := prevCommit.Tree()
+	if treeErr != nil {
+		return false, treeErr
+	}
+	diffOpts := &git.DiffOptions{
+		Flags:            git.DiffNormal,
+		IgnoreSubmodules: git.SubmoduleIgnoreNone,
+		Pathspec:         []string{s.conf.Path},
+	}
+	diff, diffErr := repo.DiffTreeToWorkdir(prevTree, diffOpts)
+	if diffErr != nil {
+		return false, diffErr
+	}
+	deltas, deltaErr := diff.NumDeltas()
+	if deltaErr != nil {
+		return false, deltaErr
+	}
+	if deltas > 0 {
 		return false, nil
 	}
+	s.shouldBuild = true
 	return true, nil
 }
 

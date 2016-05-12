@@ -1,6 +1,10 @@
 package pipeline
 
-import "log"
+import (
+	"log"
+
+	git "gopkg.in/libgit2/git2go.v22"
+)
 
 func runServiceBuild(srvs map[string]*DepService) error {
 	log.Println("building services")
@@ -20,10 +24,10 @@ func runServiceBuild(srvs map[string]*DepService) error {
 }
 
 // RunBuild runs the build for all changed services
-func RunBuild(depTrees []*DepTree, lastBuildCommit string) error {
+func RunBuild(depTrees []*DepTree, repo *git.Repository, lastBuildCommit string) error {
 	log.Println("run")
 	for i := range depTrees {
-		travErr := TraverseTree(depTrees[i].CurrNode, lastBuildCommit)
+		travErr := TraverseTree(depTrees[i].CurrNode, repo, lastBuildCommit)
 		if travErr != nil {
 			return travErr
 		}
