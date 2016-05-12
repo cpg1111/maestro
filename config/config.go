@@ -2,6 +2,7 @@ package config
 
 import (
 	"io/ioutil"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 )
@@ -43,7 +44,7 @@ func readConfig(path string) ([]byte, error) {
 }
 
 // Load reads the config and returns a Config struct
-func Load(path string) (Config, error) {
+func Load(path, clonePath string) (Config, error) {
 	var conf Config
 	confData, readErr := readConfig(path)
 	if readErr != nil {
@@ -51,6 +52,11 @@ func Load(path string) (Config, error) {
 	}
 	if _, pErr := toml.Decode((string)(confData), &conf); pErr != nil {
 		return conf, pErr
+	}
+	for i := range conf.Services {
+		if strings.Contains(conf.Services[i].Path, ".") {
+			conf.Services[i].Path = strings.Replace(conf.Services[i].Path, ".", clonePath, 1)
+		}
 	}
 	return conf, nil
 }

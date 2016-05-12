@@ -1,20 +1,24 @@
 package pipeline
 
+import (
+	git "gopkg.in/libgit2/git2go.v22"
+)
+
 // DepTree is a dependency tree to determine whether or not to build services
 type DepTree struct {
 	CurrNode *DepService
 }
 
 // TraverseTree traverses a dependency tree
-func TraverseTree(depSrv *DepService) error {
-	shouldBuild, buildErr := depSrv.build.ShouldBuild()
+func TraverseTree(depSrv *DepService, repo *git.Repository, lastBuildCommit string) error {
+	shouldBuild, buildErr := depSrv.build.ShouldBuild(repo, lastBuildCommit)
 	if buildErr != nil {
 		return buildErr
 	}
 	if shouldBuild {
 		for i := range depSrv.Children {
 			depSrv.Children[i].build.shouldBuild = true
-			travErr := TraverseTree(depSrv.Children[i])
+			travErr := TraverseTree(depSrv.Children[i], repo, lastBuildCommit)
 			if travErr != nil {
 				return travErr
 			}

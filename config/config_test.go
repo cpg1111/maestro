@@ -47,7 +47,7 @@ func TestLoad(t *testing.T) {
 			},
 		},
 	}
-	conf, loadErr := Load("../test_conf.toml")
+	conf, loadErr := Load("../test_conf.toml", ".")
 	if loadErr != nil {
 		t.Error(loadErr)
 	}
