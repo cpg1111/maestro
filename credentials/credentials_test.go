@@ -7,7 +7,7 @@ import (
 )
 
 func TestToGitCredentials(t *testing.T) {
-	conf, loadErr := config.Load("../test_conf.toml")
+	conf, loadErr := config.Load("../test_conf.toml", ".")
 	if loadErr != nil {
 		t.Error(loadErr)
 	}

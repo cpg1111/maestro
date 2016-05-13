@@ -13,6 +13,21 @@ func checkStructs(test, expected interface{}) error {
 	for key := range expectedMap {
 		val := testMap[key]
 		expectedVal := expectedMap[key]
+		if key == "DependsOn" {
+			expectedArr := expectedVal.([]string)
+			testArr := val.([]string)
+			if len(expectedArr) != len(testArr) {
+				return fmt.Errorf("Expected a length of %d in DependsOn, found a length of %d", len(expectedArr), len(testArr))
+			}
+			if len(expectedArr) == 0 && len(testArr) == 0 {
+				return nil
+			}
+			for dep := range expectedArr {
+				if testArr[dep] == "" || testArr[dep] != expectedArr[dep] {
+					return fmt.Errorf("Exepcted %s for DependsOn of %d, found %s", expectedArr[dep], dep, testArr[dep])
+				}
+			}
+		}
 		if val == nil || val != expectedVal {
 			return fmt.Errorf("Exepcted %s for %s, found %s", expectedVal, key, val)
 		}
@@ -28,7 +43,7 @@ func TestLoad(t *testing.T) {
 			AuthType:       "SSH",
 			SSHPrivKeyPath: "~/.ssh/id_rsa",
 			SSHPubKeyPath:  "~/.ssh/id_rsa.pub",
-			Username:       "",
+			Username:       "git",
 			Password:       "",
 			PromptForPWD:   false,
 		},
@@ -40,10 +55,10 @@ func TestLoad(t *testing.T) {
 				Path:      ".",
 				BuildCMD:  "docker build -t test .",
 				TestCMD:   "go test -v ./...",
-				CheckCMD:  "[ $(docker ps -a | grep test | wc -w) -gte 1 ]",
+				CheckCMD:  "[ $(docker ps -a | grep test | wc -w) -gt 0 ]",
 				CreateCMD: "docker run -n test -d test",
 				UpdateCMD: "docker rm -f test && docker run -n test -d test",
-				DependsOn: []string{""},
+				DependsOn: []string{},
 			},
 		},
 	}
