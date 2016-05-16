@@ -20,7 +20,7 @@ then
 ```
     tar -C <target directory> xzvf maestro-0.1.0-<arch>.tar.gz
     cd <target directory>/maestro-0.1.0-<arch>
-    sudo make get-deps
+    sudo make get-deps # requires libgit2, so get-deps downloads, builds and installs libgit2
     make
     sudo make install
 ```
