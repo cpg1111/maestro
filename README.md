@@ -4,7 +4,7 @@ Deploy only what's changed for your multiple services in mono-repos
 ## How it Works
 
 Maestro pulls a given repository then builds a dependency tree based on a given cofig file.
-Once the dependency tree is create, Maestro then diffs against a previous commit, with the pathspec being the root directory for each service.
+Once the dependency tree is created, Maestro diffs against a previous commit, with the pathspec being the root directory for each service.
 Maestro the flags only the changed services for the pipeline, which is then ran concurrently per teir of dependencies, therefore siblings will build, test and deploy concurrently, but parents and children dependencies will always be built in the correct order.
 
 ## Install
