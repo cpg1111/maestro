@@ -6,25 +6,53 @@ import (
 	git "gopkg.in/libgit2/git2go.v22"
 )
 
+func build(srv *DepService, index string, done chan string, errChan chan error) {
+	err := srv.build.execBuild()
+	if err != nil {
+		errChan <- err
+		return
+	}
+	err = RunTests(srv.build)
+	if err != nil {
+		errChan <- err
+		return
+	}
+	err = check(srv.build)
+	if err != nil {
+		errChan <- err
+		return
+	}
+	done <- index
+	return
+}
+
 func runServiceBuild(srvs map[string]*DepService) error {
 	log.Println("building services")
+	doneChan := make(chan string)
+	errChan := make(chan error)
 	for i := range srvs {
 		log.Println("building ", srvs[i].build.conf.Name, srvs[i].build.shouldBuild)
 		if srvs[i].build.shouldBuild {
-			err := srvs[i].build.execBuild()
-			if err != nil {
-				return err
+			go build(srvs[i], i, doneChan, errChan)
+		}
+	}
+	total := 0
+	for {
+		select {
+		case index := <-doneChan:
+			total++
+			if len(srvs[index].Children) > 0 {
+				runServiceBuild(srvs[index].Children)
 			}
-			err = RunTests(srvs[i].build)
-			if err != nil {
-				return err
+			if total == len(srvs) {
+				return nil
 			}
-			if len(srvs[i].Children) > 0 {
-				runServiceBuild(srvs[i].Children)
+		case errMsg := <-errChan:
+			if errMsg != nil {
+				return errMsg
 			}
 		}
 	}
-	return nil
 }
 
 // Run runs the build for all changed services

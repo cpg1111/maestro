@@ -112,8 +112,11 @@ func (s *Service) execCheck() (bool, error) {
 	if cmdErr != nil {
 		return false, cmdErr
 	}
-	cmd.Run()
-	return false, nil
+	checkErr := cmd.Run()
+	if checkErr != nil {
+		return false, checkErr
+	}
+	return true, nil
 }
 
 func (s *Service) execBuild() error {
