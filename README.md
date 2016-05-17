@@ -10,20 +10,36 @@ Maestro the flags only the changed services for the pipeline, which is then ran 
 ## Install
 
 ```
+    go get github.com/cpg1111/maestro
+    cd maestro
+```
+
+or
+
+```
+    git clone git@github.com/cpg1111/maestro.git
+    cd maestro
+```
+
+or
+
+```
     curl -L -o <target path> -z <target path> https://github.com/cpg1111/maestro/releases/download/v0.1.0/maestro-0.1.0-<arch>.tar.gz
+    tar -C <target directory> xzvf maestro-0.1.0-<arch>.tar.gz
+    cd <target directory>/maestro-0.1.0-<arch>
 ```
 
 or
 
 ```
     wget https://github.com/cpg1111/maestro/releases/download/v0.1.0/maestro-0.1.0-<arch>.tar.gz
+    tar -C <target directory> xzvf maestro-0.1.0-<arch>.tar.gz
+    cd <target directory>/maestro-0.1.0-<arch>
 ```
 
 then
 
 ```
-    tar -C <target directory> xzvf maestro-0.1.0-<arch>.tar.gz
-    cd <target directory>/maestro-0.1.0-<arch>
     sudo make get-deps # requires libgit2, so get-deps downloads, builds and installs libgit2
     make
     sudo make install
