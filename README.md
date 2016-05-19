@@ -10,7 +10,7 @@ Maestro the flags only the changed services for the pipeline, which is then ran 
 ## Install
 
 ```
-    go get github.com/cpg1111/maestro
+    go get -d github.com/cpg1111/maestro
     cd maestro
 ```
 
