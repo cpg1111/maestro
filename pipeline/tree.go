@@ -1,6 +1,9 @@
 package pipeline
 
 import (
+	"errors"
+	"log"
+
 	git "gopkg.in/libgit2/git2go.v22"
 )
 
@@ -11,6 +14,9 @@ type DepTree struct {
 
 // TraverseTree traverses a dependency tree
 func TraverseTree(depSrv *DepService, repo *git.Repository, lastBuildCommit string) error {
+	if depSrv == nil {
+		return errors.New("Service is nil in tree")
+	}
 	shouldBuild, buildErr := depSrv.build.ShouldBuild(repo, lastBuildCommit)
 	if buildErr != nil {
 		return buildErr
@@ -45,6 +51,7 @@ func getDependencies(depSrv *DepService, created map[string]*DepService, proj *P
 			parent := &DepService{build: proj.Services[depSrv.build.conf.DependsOn[j]]}
 			depSrv.Parent = parent
 			if parent.Children[depSrv.build.conf.Name] == nil {
+				log.Println(depSrv)
 				parent.Children[depSrv.build.conf.Name] = depSrv
 			}
 		}

@@ -28,3 +28,6 @@ Godeps/_workspace
 
 # Test Repo Clone
 testClone/
+
+# dist dir
+dist/
