@@ -90,5 +90,5 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 // Clone clones a git repo
 func (p *Project) Clone(opts *git.CloneOptions) (*git.Repository, error) {
 	log.Println("Cloning Repo...")
-	return git.Clone(p.conf.RepoURL, fmt.Sprintf("%s.git/", p.clonePath), opts)
+	return git.Clone(p.conf.RepoURL, fmt.Sprintf("%s/", p.clonePath), opts)
 }
