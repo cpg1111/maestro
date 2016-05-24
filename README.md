@@ -37,10 +37,38 @@ or
     cd <target directory>/maestro-0.1.0-<arch>
 ```
 
+or
+
+```
+    docker pull cpg1111/maestro
+```
+
 then
+
+dynamically linked
 
 ```
     sudo make get-deps # requires libgit2, so get-deps downloads, builds and installs libgit2
     make
     sudo make install
+```
+
+or
+
+statically linked
+
+```
+    ./build.sh
+```
+
+then
+
+```
+    maestro --branch <git branch to build> --conf <project config> --prev-commit <commit to compare to> --clone-path <tmp path to clone repo into>
+```
+
+or
+
+```
+    docker run -v <path of conf>:<target> -v <path to ssh credentials if using ssh for git>:<target> maestro --branch <git branch to build> --conf <project config> --prev-commit <commit to compare to> --clone-path <tmp path to clone repo into>
 ```
