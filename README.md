@@ -1,6 +1,8 @@
 # maestro
 Deploy only what's changed for your multiple services in mono-repos
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/cpg1111/maestro)](https://goreportcard.com/report/github.com/cpg1111/maestro)
+
 ## How it Works
 
 Maestro pulls a given repository then builds a dependency tree based on a given config file.
