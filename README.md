@@ -59,9 +59,10 @@ statically linked
 
 ```
     ./build.sh
+    sudo cp ./dist/maestro <some dir in PATH>
 ```
 
-then
+
 
 ```
     maestro --branch <git branch to build> --conf <project config> --prev-commit <commit to compare to> --clone-path <tmp path to clone repo into>
