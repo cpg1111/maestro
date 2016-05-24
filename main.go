@@ -34,7 +34,7 @@ func main() {
 	if credErr != nil {
 		log.Fatal(credErr)
 	}
-	if len(conf.Environment.Exec) > 0 || len(conf.Environment.ExecSync) {
+	if len(conf.Environment.Exec) > 0 || len(conf.Environment.ExecSync) > 0 {
 		log.Println("Loading Environment...")
 		envErr := environment.Load(conf.Environment)
 		if envErr != nil {
