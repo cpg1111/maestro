@@ -1,3 +1,6 @@
+[Environment]
+Exec=["docker pull cpg1111/maestro"]
+
 [Project]
 RepoURL="git@github.com:cpg1111/maestro.git"
 CloneCMD="git clone"

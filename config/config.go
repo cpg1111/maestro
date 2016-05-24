@@ -33,10 +33,17 @@ type Project struct {
 	PromptForPWD   bool
 }
 
+// Environment is the config for the environment
+type Environment struct {
+	ExecSync []string
+	Exec     []string
+}
+
 // Config is a struct to parse the TOML config into
 type Config struct {
-	Project  Project
-	Services []Service
+	Environment Environment
+	Project     Project
+	Services    []Service
 }
 
 func readConfig(path string) ([]byte, error) {

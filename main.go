@@ -7,6 +7,7 @@ import (
 
 	"github.com/cpg1111/maestro/config"
 	"github.com/cpg1111/maestro/credentials"
+	"github.com/cpg1111/maestro/environment"
 	"github.com/cpg1111/maestro/pipeline"
 )
 
@@ -32,6 +33,13 @@ func main() {
 	creds, credErr := credentials.NewCreds(conf.Project)
 	if credErr != nil {
 		log.Fatal(credErr)
+	}
+	if len(conf.Environment.Exec) > 0 || len(conf.Environment.ExecSync) {
+		log.Println("Loading Environment...")
+		envErr := environment.Load(conf.Environment)
+		if envErr != nil {
+			log.Fatal(envErr)
+		}
 	}
 	log.Println("Creating Pipeline...")
 	pipe := pipeline.New(&conf, creds, *clonePath, *checkoutBranch)

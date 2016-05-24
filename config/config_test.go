@@ -37,6 +37,9 @@ func checkStructs(test, expected interface{}) error {
 
 func TestLoad(t *testing.T) {
 	expected := &Config{
+		Environment: Environment{
+			Exec: []string{"docker pull cpg1111/maestro"},
+		},
 		Project: Project{
 			RepoURL:        "git@github.com:cpg1111/maestro.git",
 			CloneCMD:       "git clone",
