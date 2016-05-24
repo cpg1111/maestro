@@ -40,6 +40,7 @@ or
 or
 
 ```
+    # This one handles everything but running maestro
     docker pull cpg1111/maestro
 ```
 
