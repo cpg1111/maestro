@@ -108,6 +108,9 @@ func execSrvCmd(cmdStr, path, name string) error {
 }
 
 func (s *Service) execCheck() (bool, error) {
+	if s.conf.CheckCMD == "" {
+		return true, nil
+	}
 	cmd, cmdErr := formatCommand(s.conf.CheckCMD, s.conf.Path, s.conf.Name)
 	if cmdErr != nil {
 		return false, cmdErr
@@ -128,9 +131,15 @@ func (s *Service) execTests() error {
 }
 
 func (s *Service) execCreate() error {
+	if s.conf.CreateCMD == "" {
+		return nil
+	}
 	return execSrvCmd(s.conf.CreateCMD, s.conf.Path, s.conf.Name)
 }
 
 func (s *Service) execUpdate() error {
+	if s.conf.UpdateCMD == "" {
+		return nil
+	}
 	return execSrvCmd(s.conf.UpdateCMD, s.conf.Path, s.conf.Name)
 }

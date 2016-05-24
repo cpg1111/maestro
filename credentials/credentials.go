@@ -1,7 +1,6 @@
 package credentials
 
 import (
-	"log"
 	"os/user"
 	"strings"
 
@@ -27,11 +26,15 @@ func (rc *RawCredentials) ToGitCredentials() git.Cred {
 	switch rc.project.AuthType {
 	case "SSH":
 		num, creds = git.NewCredSshKey(rc.Username, rc.SSHPubKey, rc.SSHPrivKey, rc.Password)
-		log.Println(num)
+		if num != 0 {
+			panic("GIT ERROR WHEN LOADING CREDENTIALS")
+		}
 		return creds
 	case "HTTP":
 		num, creds = git.NewCredUserpassPlaintext(rc.Username, rc.Password)
-		log.Println(num)
+		if num != 0 {
+			panic("GIT ERROR WHEN LOADING CREDENTIALS")
+		}
 		return creds
 	}
 	return creds
