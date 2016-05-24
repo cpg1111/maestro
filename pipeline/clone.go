@@ -2,11 +2,13 @@ package pipeline
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/cpg1111/maestro/config"
 	"github.com/cpg1111/maestro/credentials"
 
+	pb "gopkg.in/cheggaaa/pb.v1"
 	git "gopkg.in/libgit2/git2go.v22"
 )
 
@@ -32,6 +34,23 @@ func certCheckCB(cert *git.Certificate, valid bool, hostname string) git.ErrorCo
 	return 0
 }
 
+var (
+	progbar  *pb.ProgressBar
+	received uint
+)
+
+func handleProgress(stats git.TransferProgress) git.ErrorCode {
+	if progbar == nil {
+		progbar = pb.StartNew((int)(stats.TotalObjects))
+	}
+	newObjs := stats.ReceivedObjects - received
+	for i := 0; i < (int)(newObjs); i++ {
+		progbar.Increment()
+	}
+	received = stats.ReceivedObjects
+	return git.ErrOk
+}
+
 // New returns a new instance of a pipeline project
 func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, branch string) *Project {
 	newServices := make(map[string]*Service)
@@ -47,6 +66,7 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 		RemoteCallbacks: &git.RemoteCallbacks{
 			CredentialsCallback:      credCB(&gitCreds),
 			CertificateCheckCallback: certCheckCB,
+			TransferProgressCallback: handleProgress,
 		},
 		CheckoutOpts: &git.CheckoutOpts{
 			Strategy: git.CheckoutSafeCreate,
@@ -69,5 +89,6 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 
 // Clone clones a git repo
 func (p *Project) Clone(opts *git.CloneOptions) (*git.Repository, error) {
+	log.Println("Cloning Repo...")
 	return git.Clone(p.conf.RepoURL, fmt.Sprintf("%s.git/", p.clonePath), opts)
 }

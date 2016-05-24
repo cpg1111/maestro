@@ -23,21 +23,25 @@ func main() {
 		log.Println("Maestro requires a previous commit to build from.")
 		os.Exit(1)
 	}
-	log.Println("Running")
+	log.Println("Loading Configuration...")
 	conf, confErr := config.Load(*confPath, *clonePath)
 	if confErr != nil {
 		log.Fatal(confErr)
 	}
+	log.Println("Loading Credentials...")
 	creds, credErr := credentials.NewCreds(conf.Project)
 	if credErr != nil {
 		log.Fatal(credErr)
 	}
+	log.Println("Creating Pipeline...")
 	pipe := pipeline.New(&conf, creds, *clonePath, *checkoutBranch)
 	repo, cloneErr := pipe.Clone(pipe.CloneOpts)
 	if cloneErr != nil {
 		log.Fatal(cloneErr)
 	}
+	log.Println("Building Dependency Tree...")
 	depTrees := pipeline.NewTreeList(pipe)
+	log.Println("Building Serivces...")
 	buildErr := pipeline.Run(depTrees, repo, *lastBuildCommit)
 	if buildErr != nil {
 		os.RemoveAll(*clonePath)
