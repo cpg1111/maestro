@@ -58,7 +58,7 @@ func TestLoad(t *testing.T) {
 				Path:      ".",
 				BuildCMD:  "docker build -t test .",
 				TestCMD:   "go test -v ./...",
-				CheckCMD:  "[ $(docker ps -a | grep test | wc -w) -gt 0 ]",
+				CheckCMD:  "docker ps -a",
 				CreateCMD: "docker run -n test -d test",
 				UpdateCMD: "docker rm -f test && docker run -n test -d test",
 				DependsOn: []string{},
