@@ -22,6 +22,7 @@ func build(srv *DepService, index string, done chan string, errChan chan error) 
 		errChan <- err
 		return
 	}
+	srv.build.shouldBuild = false
 	done <- index
 	return
 }

@@ -51,7 +51,6 @@ func getDependencies(depSrv *DepService, created map[string]*DepService, proj *P
 			parent := &DepService{build: proj.Services[depSrv.build.conf.DependsOn[j]]}
 			depSrv.Parent = parent
 			if parent.Children[depSrv.build.conf.Name] == nil {
-				log.Println(depSrv)
 				parent.Children[depSrv.build.conf.Name] = depSrv
 			}
 		}

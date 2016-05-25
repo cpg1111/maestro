@@ -55,8 +55,5 @@ func main() {
 		os.RemoveAll(*clonePath)
 		log.Fatal(buildErr)
 	}
-
 	os.RemoveAll(*clonePath)
-	log.Println(*repo)
-	log.Println(*depTrees[0].CurrNode)
 }
