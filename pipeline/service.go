@@ -72,26 +72,32 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit string) (boo
 }
 
 func formatCommand(strCMD, path, name string) (*exec.Cmd, error) {
-	cmdStr := strings.Split(strCMD, " ")
-	log.Println("executing build for ", name)
-	cmdPath, lookupErr := exec.LookPath(cmdStr[0])
+	var cmdArr []string
+	log.Println(strCMD[5:7])
+	if strings.Contains(strCMD[0:8], "bash -c") {
+		cmdArr = []string{strCMD[0:4], strCMD[5:7], strCMD[8:]}
+	} else {
+		cmdArr = strings.Split(strCMD, " ")
+	}
+	log.Println(cmdArr)
+	cmdPath, lookupErr := exec.LookPath(cmdArr[0])
 	if lookupErr != nil {
 		return &exec.Cmd{}, lookupErr
 	}
 	cmd := exec.Command(cmdPath)
-	cmdLen := len(cmdStr)
+	cmdLen := len(cmdArr)
 	for i := 1; i < cmdLen; i++ {
-		if strings.Contains(cmdStr[i], ".") {
-			cmdStr[i] = strings.Replace(cmdStr[i], ".", path, 1)
+		if strings.Contains(cmdArr[i], ".") {
+			cmdArr[i] = strings.Replace(cmdArr[i], ".", path, 1)
 		}
-		if strings.Contains(cmdStr[i], "~") {
+		if strings.Contains(cmdArr[i], "~") {
 			currUser, userErr := user.Current()
 			if userErr != nil {
 				return &exec.Cmd{}, userErr
 			}
-			cmdStr[i] = strings.Replace(cmdStr[i], "~", currUser.HomeDir, 1)
+			cmdArr[i] = strings.Replace(cmdArr[i], "~", currUser.HomeDir, 1)
 		}
-		cmd.Args = append(cmd.Args, cmdStr[i])
+		cmd.Args = append(cmd.Args, cmdArr[i])
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
