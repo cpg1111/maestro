@@ -6,7 +6,7 @@ import (
 	git "gopkg.in/libgit2/git2go.v22"
 )
 
-func build(srv *DepService, index string, done chan string, errChan chan error) {
+func build(srv *DepService, index string, done chan string, errChan chan error, shouldDeploy *bool) {
 	err := srv.build.execBuild()
 	if err != nil {
 		errChan <- err
@@ -15,6 +15,10 @@ func build(srv *DepService, index string, done chan string, errChan chan error) 
 	err = RunTests(srv.build)
 	if err != nil {
 		errChan <- err
+		return
+	}
+	if !*shouldDeploy {
+		done <- index
 		return
 	}
 	err = check(srv.build)
@@ -27,14 +31,14 @@ func build(srv *DepService, index string, done chan string, errChan chan error) 
 	return
 }
 
-func runServiceBuild(srvs map[string]*DepService) error {
+func runServiceBuild(srvs map[string]*DepService, shouldDeploy *bool) error {
 	log.Println("building services")
 	doneChan := make(chan string)
 	errChan := make(chan error)
 	for i := range srvs {
 		log.Println("building ", srvs[i].build.conf.Name, srvs[i].build.shouldBuild)
 		if srvs[i].build.shouldBuild {
-			go build(srvs[i], i, doneChan, errChan)
+			go build(srvs[i], i, doneChan, errChan, shouldDeploy)
 		}
 	}
 	total := 0
@@ -43,7 +47,7 @@ func runServiceBuild(srvs map[string]*DepService) error {
 		case index := <-doneChan:
 			total++
 			if len(srvs[index].Children) > 0 {
-				runServiceBuild(srvs[index].Children)
+				runServiceBuild(srvs[index].Children, shouldDeploy)
 			}
 			if total == len(srvs) {
 				return nil
@@ -57,7 +61,7 @@ func runServiceBuild(srvs map[string]*DepService) error {
 }
 
 // Run runs the build for all changed services
-func Run(depTrees []*DepTree, repo *git.Repository, lastBuildCommit string) error {
+func Run(depTrees []*DepTree, repo *git.Repository, lastBuildCommit *string, shouldDeploy *bool) error {
 	log.Println("run")
 	for i := range depTrees {
 		travErr := TraverseTree(depTrees[i].CurrNode, repo, lastBuildCommit)
@@ -67,7 +71,7 @@ func Run(depTrees []*DepTree, repo *git.Repository, lastBuildCommit string) erro
 		log.Println(i+1, "tree")
 		rootMap := make(map[string]*DepService)
 		rootMap["root"] = depTrees[i].CurrNode
-		err := runServiceBuild(rootMap)
+		err := runServiceBuild(rootMap, shouldDeploy)
 		if err != nil {
 			return err
 		}

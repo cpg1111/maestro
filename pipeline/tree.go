@@ -13,7 +13,7 @@ type DepTree struct {
 }
 
 // TraverseTree traverses a dependency tree
-func TraverseTree(depSrv *DepService, repo *git.Repository, lastBuildCommit string) error {
+func TraverseTree(depSrv *DepService, repo *git.Repository, lastBuildCommit *string) error {
 	if depSrv == nil {
 		return errors.New("Service is nil in tree")
 	}

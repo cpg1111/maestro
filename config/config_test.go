@@ -56,7 +56,7 @@ func TestLoad(t *testing.T) {
 				Tag:       "0.0.1",
 				TagType:   "",
 				Path:      ".",
-				BuildCMD:  "docker build -t test .",
+				BuildCMD:  "bash -c 'docker build -f Dockerfile_build -t maestro_build . && docker run -v $(pwd)/dist:/opt/bin/ && docker build -t cpg1111/maestro .'",
 				TestCMD:   "go test -v ./...",
 				CheckCMD:  "docker ps -a",
 				CreateCMD: "docker run -n test -d test",

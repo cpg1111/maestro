@@ -36,9 +36,9 @@ func NewService(srv config.Service, creds *credentials.RawCredentials) *Service 
 }
 
 // ShouldBuild diffs a service's path and determs whether or not it needs to run the pipeline on it
-func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit string) (bool, error) {
+func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit *string) (bool, error) {
 	log.Println("diff")
-	prevCommitObject, _, parseErr := repo.RevparseExt(lastBuildCommit)
+	prevCommitObject, _, parseErr := repo.RevparseExt(*lastBuildCommit)
 	if parseErr != nil {
 		return false, parseErr
 	}
