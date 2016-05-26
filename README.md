@@ -82,6 +82,7 @@ or
 - Add Clean Up phase
 - Pipeline tests
 - More possible dependency structures
+- Clean Up Logging
 
 ### Daemon
 See [this](https://github.com/cpg1111/maestrod) (https://github.com/cpg1111/maestrod) for a manager daemon for handling git push hooks and multiple concurrent builds and repos.
