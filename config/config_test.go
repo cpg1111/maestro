@@ -64,6 +64,16 @@ func TestLoad(t *testing.T) {
 				DependsOn: []string{},
 			},
 		},
+		CleanUp: CleanUp{
+			AdditionalCMDs: []string{"docker inspect maestro"},
+			InDaemon:       false,
+			Artifacts: []Artifact{
+				Artifact{
+					RuntimeFilePath: "./dist/maestro",
+					SaveFilePath:    "/tmp/maestro",
+				},
+			},
+		},
 	}
 	conf, loadErr := Load("../test_conf.toml", ".")
 	if loadErr != nil {
