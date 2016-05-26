@@ -16,13 +16,14 @@ type syncEnvJob struct {
 	cmd []string
 }
 
-func (s *syncEnvJob) Run() error {
+// Run runs the process and returns the child pid and/or error
+func (s *syncEnvJob) Run() (int, error) {
 	cmdPath, lookErr := exec.LookPath(s.cmd[0])
 	if lookErr != nil {
-		return lookErr
+		return -1, lookErr
 	}
 	cmd := exec.Command(cmdPath, s.cmd[1:]...)
-	return cmd.Run()
+	return cmd.Process.Pid, cmd.Run()
 }
 
 type concurrentEnvJob struct {
@@ -30,16 +31,19 @@ type concurrentEnvJob struct {
 	cmd []string
 }
 
-func (c *concurrentEnvJob) Run(status chan error) {
+func (c *concurrentEnvJob) Run(pid chan int, status chan error) {
 	cmdPath, lookErr := exec.LookPath(c.cmd[0])
 	if lookErr != nil {
 		status <- lookErr
 	}
 	cmd := exec.Command(cmdPath, c.cmd[1:]...)
-	log.Println(cmd)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
-	status <- cmd.Run()
+	err := cmd.Start()
+	status <- err
+	pid <- cmd.Process.Pid
+	err = cmd.Wait()
+	status <- err
 }
 
 func newJob(cmdStr string, sync bool) envJob {
@@ -58,17 +62,18 @@ func Load(conf config.Environment) error {
 	if len(conf.ExecSync) > 0 {
 		for i := range conf.ExecSync {
 			job := newJob(conf.ExecSync[i], true).(syncEnvJob)
-			err := job.Run()
+			_, err := job.Run()
 			if err != nil {
 				return err
 			}
 		}
 	}
 	if len(conf.Exec) > 0 {
+		pid := make(chan int)
 		status := make(chan error)
 		for j := range conf.Exec {
 			job := newJob(conf.Exec[j], false).(concurrentEnvJob)
-			go job.Run(status)
+			go job.Run(pid, status)
 		}
 		count := 0
 		for {
@@ -81,6 +86,7 @@ func Load(conf config.Environment) error {
 				} else {
 					count++
 				}
+			case _ = <-pid:
 			}
 		}
 	}
