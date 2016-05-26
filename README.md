@@ -84,7 +84,7 @@ or
 - More possible dependency structures
 
 ### Daemon
-See [this](https://github.com/cpg1111/maestrod) (https://github.com/cpg1111/maestrod) for a manager daemon for handling git push hooks and multiple repos.
+See [this](https://github.com/cpg1111/maestrod) (https://github.com/cpg1111/maestrod) for a manager daemon for handling git push hooks and multiple concurrent builds and repos.
 
 ### Warning
 
