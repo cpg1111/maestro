@@ -68,11 +68,24 @@ statically linked
 ## Run
 
 ```
-    maestro --branch <git branch to build> --conf <project config> --prev-commit <commit to compare to> --clone-path <tmp path to clone repo into>
+    maestro --branch <git branch to build> --conf <project config> --prev-commit <commit to compare to> --deploy <whether to deploy build or not> --clone-path <tmp path to clone repo into>
 ```
 
 or
 
 ```
-    docker run -v <path of conf>:<target> -v <path to ssh credentials if using ssh for git>:<target> maestro --branch <git branch to build> --conf <project config> --prev-commit <commit to compare to> --clone-path <tmp path to clone repo into>
+    docker run -v <path of conf>:<target> -v <path to ssh credentials if using ssh for git>:<target> maestro --branch <git branch to build> --conf <project config> --prev-commit <commit to compare to> --deploy <whether to deploy build or not> --clone-path <tmp path to clone repo into>
 ```
+
+## Roadmap
+
+- Add Clean Up phase
+- Pipeline tests
+- More possible dependency structures
+
+### Daemon
+See [this](https://github.com/cpg1111/maestrod) (https://github.com/cpg1111/maestrod) for a manager daemon for handling git push hooks and multiple repos.
+
+### Warning
+
+Some dependency structures are not supported yet.  Best to refer to immediate dependencies only and avoid circlular references.
