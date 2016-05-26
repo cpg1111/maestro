@@ -16,6 +16,7 @@ var (
 	clonePath       = flag.String("clone-path", "./", "Local path to clone repo to defaults to PWD")
 	checkoutBranch  = flag.String("branch", "master", "Git branch to checkout for project")
 	lastBuildCommit = flag.String("prev-commit", "", "Previous commit to compare to")
+	deploy          = flag.Bool("deploy", false, "Whether or not to deploy this build")
 )
 
 func main() {
@@ -49,8 +50,8 @@ func main() {
 	}
 	log.Println("Building Dependency Tree...")
 	depTrees := pipeline.NewTreeList(pipe)
-	log.Println("Building Serivces...")
-	buildErr := pipeline.Run(depTrees, repo, *lastBuildCommit)
+	log.Println("Building Serivces...", *deploy)
+	buildErr := pipeline.Run(depTrees, repo, lastBuildCommit, deploy)
 	if buildErr != nil {
 		os.RemoveAll(*clonePath)
 		log.Fatal(buildErr)
