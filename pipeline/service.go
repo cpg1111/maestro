@@ -2,13 +2,10 @@ package pipeline
 
 import (
 	"log"
-	"os"
-	"os/exec"
-	"os/user"
-	"strings"
 
 	"github.com/cpg1111/maestro/config"
 	"github.com/cpg1111/maestro/credentials"
+	"github.com/cpg1111/maestro/util"
 
 	git "gopkg.in/libgit2/git2go.v22"
 )
@@ -71,41 +68,8 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit *string) (bo
 	return true, nil
 }
 
-func formatCommand(strCMD, path, name string) (*exec.Cmd, error) {
-	var cmdArr []string
-	log.Println(strCMD[5:7])
-	if strings.Contains(strCMD[0:8], "bash -c") {
-		cmdArr = []string{strCMD[0:4], strCMD[5:7], strCMD[8:]}
-	} else {
-		cmdArr = strings.Split(strCMD, " ")
-	}
-	log.Println(cmdArr)
-	cmdPath, lookupErr := exec.LookPath(cmdArr[0])
-	if lookupErr != nil {
-		return &exec.Cmd{}, lookupErr
-	}
-	cmd := exec.Command(cmdPath)
-	cmdLen := len(cmdArr)
-	for i := 1; i < cmdLen; i++ {
-		if strings.Contains(cmdArr[i], ".") {
-			cmdArr[i] = strings.Replace(cmdArr[i], ".", path, 1)
-		}
-		if strings.Contains(cmdArr[i], "~") {
-			currUser, userErr := user.Current()
-			if userErr != nil {
-				return &exec.Cmd{}, userErr
-			}
-			cmdArr[i] = strings.Replace(cmdArr[i], "~", currUser.HomeDir, 1)
-		}
-		cmd.Args = append(cmd.Args, cmdArr[i])
-	}
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd, nil
-}
-
-func execSrvCmd(cmdStr, path, name string) error {
-	cmd, cmdErr := formatCommand(cmdStr, path, name)
+func execSrvCmd(cmdStr, path string) error {
+	cmd, cmdErr := util.FormatCommand(cmdStr, path)
 	if cmdErr != nil {
 		return cmdErr
 	}
@@ -117,7 +81,7 @@ func (s *Service) execCheck() (bool, error) {
 	if s.conf.CheckCMD == "" {
 		return true, nil
 	}
-	cmd, cmdErr := formatCommand(s.conf.CheckCMD, s.conf.Path, s.conf.Name)
+	cmd, cmdErr := util.FormatCommand(s.conf.CheckCMD, s.conf.Path)
 	if cmdErr != nil {
 		return false, cmdErr
 	}
@@ -129,23 +93,23 @@ func (s *Service) execCheck() (bool, error) {
 }
 
 func (s *Service) execBuild() error {
-	return execSrvCmd(s.conf.BuildCMD, s.conf.Path, s.conf.Name)
+	return execSrvCmd(s.conf.BuildCMD, s.conf.Path)
 }
 
 func (s *Service) execTests() error {
-	return execSrvCmd(s.conf.TestCMD, s.conf.Path, s.conf.Name)
+	return execSrvCmd(s.conf.TestCMD, s.conf.Path)
 }
 
 func (s *Service) execCreate() error {
 	if s.conf.CreateCMD == "" {
 		return nil
 	}
-	return execSrvCmd(s.conf.CreateCMD, s.conf.Path, s.conf.Name)
+	return execSrvCmd(s.conf.CreateCMD, s.conf.Path)
 }
 
 func (s *Service) execUpdate() error {
 	if s.conf.UpdateCMD == "" {
 		return nil
 	}
-	return execSrvCmd(s.conf.UpdateCMD, s.conf.Path, s.conf.Name)
+	return execSrvCmd(s.conf.UpdateCMD, s.conf.Path)
 }

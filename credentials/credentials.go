@@ -53,7 +53,7 @@ func readKey(path string) (string, error) {
 }
 
 // NewCreds returns a pointer to a new instance of RawCredentials
-func NewCreds(project config.Project) (*RawCredentials, error) {
+func NewCreds(project *config.Project) (*RawCredentials, error) {
 	var privKey, pubKey string
 	var privErr, pubErr error
 	if strings.Contains(project.AuthType, "SSH") {
@@ -73,7 +73,7 @@ func NewCreds(project config.Project) (*RawCredentials, error) {
 		pwd = project.Password
 	}
 	creds := &RawCredentials{
-		project:    project,
+		project:    *project,
 		SSHPrivKey: privKey,
 		SSHPubKey:  pubKey,
 		Username:   project.Username,

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/cpg1111/maestro/cleanUp"
 	"github.com/cpg1111/maestro/config"
 	"github.com/cpg1111/maestro/credentials"
 	"github.com/cpg1111/maestro/environment"
@@ -31,13 +32,13 @@ func main() {
 		log.Fatal(confErr)
 	}
 	log.Println("Loading Credentials...")
-	creds, credErr := credentials.NewCreds(conf.Project)
+	creds, credErr := credentials.NewCreds(&conf.Project)
 	if credErr != nil {
 		log.Fatal(credErr)
 	}
 	if len(conf.Environment.Exec) > 0 || len(conf.Environment.ExecSync) > 0 {
 		log.Println("Loading Environment...")
-		envErr := environment.Load(conf.Environment)
+		envErr := environment.Load(&conf.Environment)
 		if envErr != nil {
 			log.Fatal(envErr)
 		}
@@ -56,5 +57,6 @@ func main() {
 		os.RemoveAll(*clonePath)
 		log.Fatal(buildErr)
 	}
-	os.RemoveAll(*clonePath)
+	log.Println("Cleaning Up Build...")
+	cleanUp.Run(&conf.CleanUp, clonePath)
 }
