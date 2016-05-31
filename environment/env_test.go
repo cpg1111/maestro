@@ -1,26 +1,15 @@
 package environment
 
 import (
-	"syscall"
 	"testing"
 
 	"github.com/cpg1111/maestro/config"
+	"github.com/cpg1111/maestro/util"
 )
 
 var conf = &config.Environment{
 	ExecSync: []string{"echo '1'"},
 	Exec:     []string{"ping github.com"},
-}
-
-func checkForProcess(pid int, found chan bool, err chan error) {
-	ptraceErr := syscall.PtraceAttach(pid)
-	if ptraceErr != nil {
-		err <- ptraceErr
-		found <- false
-		return
-	}
-	found <- true
-	syscall.Kill(pid, syscall.SIGKILL)
 }
 
 func TestSyncRun(t *testing.T) {
@@ -40,7 +29,7 @@ func TestConcurrentRun(t *testing.T) {
 	for {
 		select {
 		case pid := <-pidChan:
-			go checkForProcess(pid, foundChan, errChan)
+			go util.CheckForProcess(pid, foundChan, errChan)
 		case err := <-errChan:
 			if err != nil {
 				t.Error(err)
