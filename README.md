@@ -68,6 +68,20 @@ statically linked
 ## Run
 
 ```
+    Usage of maestro:
+      --branch string
+            Git branch to checkout for project (default "master")
+      --clone-path string
+            Local path to clone repo to defaults to PWD (default "./")
+      --config string
+            Path to the config for maestro to use (default "./conf.toml")
+      --deploy
+            Whether or not to deploy this build                             # defaults to false
+      --prev-commit string
+            Previous commit to compare to                                   # required
+```
+
+```
     maestro --branch <git branch to build> --conf <project config> --prev-commit <commit to compare to> --deploy <whether to deploy build or not> --clone-path <tmp path to clone repo into>
 ```
 
@@ -75,6 +89,79 @@ or
 
 ```
     docker run -v <path of conf>:<target> -v <path to ssh credentials if using ssh for git>:<target> maestro --branch <git branch to build> --conf <project config> --prev-commit <commit to compare to> --deploy <whether to deploy build or not> --clone-path <tmp path to clone repo into>
+```
+
+## Example Config
+
+```
+    [Environment] # Environment will run before anything else, ExecSync will execute commands in the array synchronously, while exec will execute them concurrently
+    ExecSync=["apt-get install -y docker node go"]
+    Exec=["docker pull someOrg/logger", "docker pull someOrg/models", "docker pull someOrg/auth", "docker pull someOrg/client"]
+
+    [Project]
+    RepoURL="git@github.com:someOrg/someRepo.git"
+    CloneCMD="git clone"
+    AuthType="SSH"
+    SSHPrivKeyPath="~/.ssh/id_rsa"
+    SSHPubKeyPath="~/.ssh/id_rsa.pub"
+    Username="git" # github's ssh user is git, but this can vary
+    Password=""
+    PromptForPWD=false # when requiring a password, you prompt for a password
+
+    [[Services]]
+    Name="logger"
+    Tag="0.1.0"
+    TagType="git"
+    Path="./src/logger"
+    BuildCMD="docker build -t logger ." # '.' is relative to the given path field of the service
+    TestCMD="go test ./..."
+    CheckCMD="bash -c 'docker images -a | grep logger'"
+    CreateCMD=""
+    UpdateCMD=""
+    DependsOn=[]
+
+    [[Services]]
+    Name="models"
+    Tag="0.1.0"
+    TagType="git"
+    Path="./src/models"
+    BuildCMD="docker build -t models ."
+    TestCMD="go test ./..."
+    CheckCMD="bash -c 'docker images -a | grep models'"
+    CreateCMD=""
+    UpdateCMD=""
+    DependsOn=["logger"] # Assume Dockerfile contains FROM logger
+
+    [[Services]]
+    Name="auth"
+    Tag="0.1.0"
+    TagType="git"
+    Path="./src/auth"
+    BuildCMD="docker build -t auth ."
+    TestCMD="go test ./..."
+    CheckCMD="docker ps -a | grep auth"
+    CreateCMD="docker run --rm -d auth"
+    UpdateCMD="docker run --rm -d auth"
+    DependsOn=["database"] # Assume Dockerfile contains FROM models
+
+    [[Services]]
+    Name="client"
+    Tag="0.1.0"
+    TagType="git"
+    Path="./src/client"
+    BuildCMD="docker build -t client ."
+    TestCMD="npm test"
+    CheckCMD="docker ps -a | grep client"
+    CreateCMD="docker run --rm -d client"
+    UpdateCMD="docker run --rm -d client"
+    DependsOn=[]
+
+    [CleanUp]
+    AdditionalCMDs=["docker inspect auth", "docker export -o ./dist/auth.tgz auth"] # Will execute synchronously
+    InDaemon=false # COMING SOON for maestrod
+        [[CleanUp.Artifacts]] # Artifacts are saved concurrently
+        RuntimeFilePath="./dist/auth.tgz"
+        SaveFilePath="/opt/data/auth.tgz"
 ```
 
 ## Roadmap

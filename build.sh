@@ -29,5 +29,5 @@ cd $GOPATH/src/github.com/cpg1111/maestro/ && \
 rm -rf ./Godeps/_workspace/ && \
 godep restore ./... && \
 go build --ldflags '-extldflags "-static"' -o maestro github.com/cpg1111/maestro/ && \
-ldd ./maestro && \
+# ldd ./maestro && \
 cp ./maestro /opt/bin/
