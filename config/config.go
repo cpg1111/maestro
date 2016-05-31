@@ -39,11 +39,25 @@ type Environment struct {
 	Exec     []string
 }
 
+// Artifact is struct for what artifacts to save post-pipeline
+type Artifact struct {
+	RuntimeFilePath string
+	SaveFilePath    string
+}
+
+// CleanUp is a struct for the post-pipeline actions to clean up the build and save artifacts
+type CleanUp struct {
+	AdditionalCMDs []string
+	InDaemon       bool
+	Artifacts      []Artifact
+}
+
 // Config is a struct to parse the TOML config into
 type Config struct {
 	Environment Environment
 	Project     Project
 	Services    []Service
+	CleanUp     CleanUp
 }
 
 func readConfig(path string) ([]byte, error) {

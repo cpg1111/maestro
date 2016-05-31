@@ -4,61 +4,59 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"strings"
 
 	"github.com/cpg1111/maestro/config"
+	"github.com/cpg1111/maestro/util"
 )
 
 type envJob interface{}
 
 type syncEnvJob struct {
 	envJob
-	cmd []string
+	cmd *exec.Cmd
 }
 
 // Run runs the process and returns the child pid and/or error
 func (s *syncEnvJob) Run() (int, error) {
-	cmdPath, lookErr := exec.LookPath(s.cmd[0])
-	if lookErr != nil {
-		return -1, lookErr
-	}
-	cmd := exec.Command(cmdPath, s.cmd[1:]...)
-	return cmd.Process.Pid, cmd.Run()
+	return s.cmd.Process.Pid, s.cmd.Run()
 }
 
 type concurrentEnvJob struct {
 	envJob
-	cmd []string
+	cmd *exec.Cmd
 }
 
 func (c *concurrentEnvJob) Run(pid chan int, status chan error) {
-	cmdPath, lookErr := exec.LookPath(c.cmd[0])
-	if lookErr != nil {
-		status <- lookErr
-	}
-	cmd := exec.Command(cmdPath, c.cmd[1:]...)
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	err := cmd.Start()
+	c.cmd.Stderr = os.Stderr
+	c.cmd.Stdout = os.Stdout
+	err := c.cmd.Start()
 	status <- err
-	pid <- cmd.Process.Pid
-	err = cmd.Wait()
+	pid <- c.cmd.Process.Pid
+	err = c.cmd.Wait()
 	status <- err
 }
 
 func newJob(cmdStr string, sync bool) envJob {
+	pwd, pwdErr := os.Getwd()
+	if pwdErr != nil {
+		panic(pwdErr)
+	}
+	cmd, cmdErr := util.FormatCommand(cmdStr, pwd)
+	if cmdErr != nil {
+		panic(cmdErr)
+	}
 	if sync {
 		return syncEnvJob{
-			cmd: strings.Split(cmdStr, " "),
+			cmd: cmd,
 		}
 	}
 	return concurrentEnvJob{
-		cmd: strings.Split(cmdStr, " "),
+		cmd: cmd,
 	}
 }
 
 // Load takes an environment config and loads the environment
-func Load(conf config.Environment) error {
+func Load(conf *config.Environment) error {
 	if len(conf.ExecSync) > 0 {
 		for i := range conf.ExecSync {
 			job := newJob(conf.ExecSync[i], true).(syncEnvJob)

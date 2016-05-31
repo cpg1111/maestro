@@ -11,7 +11,7 @@ func TestToGitCredentials(t *testing.T) {
 	if loadErr != nil {
 		t.Error(loadErr)
 	}
-	project := conf.Project
+	project := &conf.Project
 	testCreds, createErr := NewCreds(project)
 	if createErr != nil {
 		t.Error(createErr)
