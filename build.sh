@@ -2,8 +2,8 @@
 
 # For build docker container's ENTRYPOINT
 
-curl -L https://github.com/libgit2/libgit2/archive/v0.22.0.tar.gz > v0.22.0.tar.gz
-tar xzvf v0.22.0.tar.gz
+curl -L -o v0.22.0.tar.gz -z v0.22.0.tar.gz https://github.com/libgit2/libgit2/archive/v0.22.0.tar.gz && \
+tar xzvf v0.22.0.tar.gz && \
 cd libgit2-0.22.0 && \
 pwd && \
 mkdir build && \
@@ -28,8 +28,6 @@ go get github.com/tools/godep && \
 cd $GOPATH/src/github.com/cpg1111/maestro/ && \
 rm -rf ./Godeps/_workspace/ && \
 godep restore ./... && \
-ls /usr/local/lib/ && \
-ls /usr/include/ && \
 go build --ldflags '-extldflags "-static"' -o maestro github.com/cpg1111/maestro/ && \
 ldd ./maestro && \
-cp ./maestro /opt/bin/ && \
+cp ./maestro /opt/bin/
