@@ -108,7 +108,7 @@ or
     Password=""
     PromptForPWD=false # when requiring a password, you prompt for a password
 
-    [[Services]]
+    [[Services]] # Services are either actual services or libraries / packages / separately compiled objects
     Name="logger"
     Tag="0.1.0"
     TagType="git"
@@ -167,6 +167,7 @@ or
 ## Roadmap
 
 - Pipeline tests
+- Option and flag for running all services' tests
 - More possible dependency structures
 - Clean Up Logging
 - Maestrod integration on clean up
