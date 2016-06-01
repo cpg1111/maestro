@@ -53,12 +53,27 @@ type DepService struct {
 	Children map[string]*DepService
 }
 
+func dependsOnChild(child, parent *DepService) int {
+	for j := range child.build.conf.DependsOn {
+		if parent.Children[child.build.conf.DependsOn[j]] != nil {
+			return j
+		}
+	}
+	return -1
+}
+
 func getDependencies(depSrv *DepService, created map[string]*DepService, proj *Project) {
 	for j := range depSrv.build.conf.DependsOn {
 		if created[depSrv.build.conf.DependsOn[j]] != nil {
-			depSrv.Parent = created[depSrv.build.conf.DependsOn[j]]
-			if created[depSrv.build.conf.DependsOn[j]].Children[depSrv.build.conf.Name] == nil {
-				created[depSrv.build.conf.DependsOn[j]].Children[depSrv.build.conf.Name] = depSrv
+			youngerParentIndex := dependsOnChild(depSrv, created[depSrv.build.conf.DependsOn[j]])
+			if youngerParentIndex > -1 {
+				depSrv.Parent = created[depSrv.build.conf.DependsOn[j]].Children[depSrv.build.conf.DependsOn[youngerParentIndex]]
+				depSrv.Children[depSrv.build.conf.Name] = depSrv
+			} else {
+				depSrv.Parent = created[depSrv.build.conf.DependsOn[j]]
+				if depSrv.Parent.Children[depSrv.build.conf.Name] == nil {
+					depSrv.Parent.Children[depSrv.build.conf.Name] = depSrv
+				}
 			}
 		} else {
 			parent := &DepService{build: proj.Services[depSrv.build.conf.DependsOn[j]]}
