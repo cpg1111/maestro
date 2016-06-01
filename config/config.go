@@ -20,18 +20,26 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+// HealthCheck is a struct to check for a service's 'upness'
+type HealthCheck struct {
+	Type              string // Either cmd, http_ping, tcp_ping, icmp_ping, udp_probe or ptrace_attach
+	CMD               string
+	ExpectedCondition string
+}
+
 // Service is a struct of the service to build
 type Service struct {
-	Name      string
-	Tag       string
-	TagType   string
-	Path      string
-	BuildCMD  string
-	TestCMD   string
-	CheckCMD  string
-	CreateCMD string
-	UpdateCMD string
-	DependsOn []string
+	Name        string
+	Tag         string
+	TagType     string
+	Path        string
+	BuildCMD    string
+	TestCMD     string
+	CheckCMD    string
+	CreateCMD   string
+	UpdateCMD   string
+	HealthCheck HealthCheck
+	DependsOn   []string
 }
 
 // Project is the struct of the project to build

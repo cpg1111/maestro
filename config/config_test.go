@@ -74,6 +74,10 @@ func TestLoad(t *testing.T) {
 				CheckCMD:  "docker ps -a",
 				CreateCMD: "docker push cpg1111/maestro",
 				UpdateCMD: "docker rm -f test && docker run -n test -d test",
+				HealthCheck: HealthCheck{
+					Type:              "ptrace_attach",
+					ExpectedCondition: "nil",
+				},
 				DependsOn: []string{},
 			},
 		},
