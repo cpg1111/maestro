@@ -88,14 +88,16 @@ func Load(conf *config.Environment) error {
 		}
 		count := 0
 		for {
+			log.Println("BLOCKING", count, len(conf.Exec))
 			select {
 			case msg := <-status:
+				log.Println(msg)
+				count++
 				if msg != nil {
 					log.Fatal(msg)
-				} else if count == len(conf.Exec)-1 {
+				} else if count == len(conf.Exec)*2 {
+					close(status)
 					return nil
-				} else {
-					count++
 				}
 			case _ = <-pid:
 			}
