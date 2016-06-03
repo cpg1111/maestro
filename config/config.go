@@ -22,9 +22,11 @@ import (
 
 // HealthCheck is a struct to check for a service's 'upness'
 type HealthCheck struct {
-	Type              string // Either cmd, http_ping, tcp_ping, icmp_ping, udp_probe or ptrace_attach
+	Type              string // Either cmd, http_get, icmp_ping or ptrace_attach
 	CMD               string
+	Address           string
 	ExpectedCondition string
+	Retrys            int
 }
 
 // Service is a struct of the service to build

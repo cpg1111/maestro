@@ -77,6 +77,7 @@ func TestLoad(t *testing.T) {
 				HealthCheck: HealthCheck{
 					Type:              "ptrace_attach",
 					ExpectedCondition: "nil",
+					Retrys:            3,
 				},
 				DependsOn: []string{},
 			},

@@ -15,6 +15,7 @@ package pipeline
 
 import (
 	"log"
+	"os/exec"
 
 	"github.com/cpg1111/maestro/config"
 	"github.com/cpg1111/maestro/credentials"
@@ -81,13 +82,13 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit *string) (bo
 	return true, nil
 }
 
-func execSrvCmd(cmdStr, path string) error {
+func execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
 	cmd, cmdErr := util.FormatCommand(cmdStr, path)
 	if cmdErr != nil {
-		return cmdErr
+		return cmd, cmdErr
 	}
 	cmd.Run()
-	return nil
+	return cmd, nil
 }
 
 func (s *Service) execCheck() (bool, error) {
@@ -106,23 +107,41 @@ func (s *Service) execCheck() (bool, error) {
 }
 
 func (s *Service) execBuild() error {
-	return execSrvCmd(s.conf.BuildCMD, s.conf.Path)
+	_, err := execSrvCmd(s.conf.BuildCMD, s.conf.Path)
+	return err
 }
 
 func (s *Service) execTests() error {
-	return execSrvCmd(s.conf.TestCMD, s.conf.Path)
+	_, err := execSrvCmd(s.conf.TestCMD, s.conf.Path)
+	return err
 }
 
 func (s *Service) execCreate() error {
 	if s.conf.CreateCMD == "" {
 		return nil
 	}
-	return execSrvCmd(s.conf.CreateCMD, s.conf.Path)
+	cmd, err := execSrvCmd(s.conf.CreateCMD, s.conf.Path)
+	if err != nil {
+		return err
+	}
+	if s.conf.HealthCheck.Type == "PTRACE_ATTACH" {
+		passPid := HealthCheck(&s.conf).(func(pid int) error)
+		return passPid(cmd.Process.Pid).(error)
+	}
+	return HealthCheck(&s.conf).(error)
 }
 
 func (s *Service) execUpdate() error {
 	if s.conf.UpdateCMD == "" {
 		return nil
 	}
-	return execSrvCmd(s.conf.UpdateCMD, s.conf.Path)
+	cmd, err := execSrvCmd(s.conf.UpdateCMD, s.conf.Path)
+	if err != nil {
+		return err
+	}
+	if s.conf.HealthCheck.Type == "PTRACE_ATTACH" {
+		passPid := HealthCheck(&s.conf).(func(pid int) error)
+		return passPid(cmd.Process.Pid).(error)
+	}
+	return HealthCheck(&s.conf).(error)
 }

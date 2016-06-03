@@ -25,6 +25,7 @@ DependsOn=[]
     [HealthCheck]
     Type="ptrace_attach"
     ExpectedCondition="nil"
+    Retrys=3
 
 [CleanUp]
 AdditionalCMDs=["docker inspect cpg1111/maestro"]
