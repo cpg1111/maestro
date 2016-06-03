@@ -64,7 +64,7 @@ func main() {
 	}
 	log.Println("Building Dependency Tree...")
 	depTrees := pipeline.NewTreeList(pipe)
-	log.Println("Building Serivces...", *deploy)
+	log.Println("Building Serivces...")
 	buildErr := pipeline.Run(depTrees, repo, lastBuildCommit, deploy)
 	if buildErr != nil {
 		os.RemoveAll(*clonePath)
