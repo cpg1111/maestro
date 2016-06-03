@@ -40,6 +40,14 @@ func checkStructs(test, expected interface{}) error {
 					return fmt.Errorf("Exepcted %s for DependsOn of %d, found %s", expectedArr[dep], dep, testArr[dep])
 				}
 			}
+		} else if key == "HealthCheck" {
+			testSubMap := val.(map[string]interface{})
+			expectedSubMap := expectedVal.(map[string]interface{})
+			for i := range expectedSubMap {
+				if testSubMap[i] != expectedSubMap[i] {
+					return fmt.Errorf("Exepcted %v for %v, found %v %+v", expectedSubMap[i], i, testSubMap[i], testSubMap)
+				}
+			}
 		}
 		if val == nil || val != expectedVal {
 			return fmt.Errorf("Exepcted %s for %s, found %s", expectedVal, key, val)
@@ -76,7 +84,7 @@ func TestLoad(t *testing.T) {
 				CreateCMD:        "docker push cpg1111/maestro",
 				UpdateCMD:        "docker rm -f test && docker run -n test -d test",
 				HealthCheck: HealthCheck{
-					Type:              "ptrace_attach",
+					Type:              "PTRACE_ATTACH",
 					ExpectedCondition: "nil",
 					Retrys:            3,
 				},

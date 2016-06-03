@@ -41,7 +41,7 @@ type Service struct {
 	CheckCMD         string
 	CreateCMD        string
 	UpdateCMD        string
-	HealthCheck      HealthCheck
+	HealthCheck      HealthCheck `toml:"[Services.HealthCheck]"`
 	DependsOn        []string
 }
 

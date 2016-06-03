@@ -24,7 +24,7 @@ CreateCMD="docker push cpg1111/maestro"
 UpdateCMD="docker rm -f test && docker run -n test -d test"
 DependsOn=[]
     [HealthCheck]
-    Type="ptrace_attach"
+    Type="PTRACE_ATTACH"
     ExpectedCondition="nil"
     Retrys=3
 
