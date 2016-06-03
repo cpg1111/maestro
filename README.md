@@ -169,7 +169,6 @@ or
 - Pipeline tests
 - Option and flag for running all services' tests
 - More possible dependency structures
-- Clean Up Logging
 - Maestrod integration on clean up
 
 ### Daemon
