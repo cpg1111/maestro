@@ -31,17 +31,18 @@ type HealthCheck struct {
 
 // Service is a struct of the service to build
 type Service struct {
-	Name        string
-	Tag         string
-	TagType     string
-	Path        string
-	BuildCMD    string
-	TestCMD     string
-	CheckCMD    string
-	CreateCMD   string
-	UpdateCMD   string
-	HealthCheck HealthCheck
-	DependsOn   []string
+	Name             string
+	Tag              string
+	TagType          string
+	Path             string
+	BuildLogFilePath string
+	BuildCMD         string
+	TestCMD          string
+	CheckCMD         string
+	CreateCMD        string
+	UpdateCMD        string
+	HealthCheck      HealthCheck `toml:"[Services.HealthCheck]"`
+	DependsOn        []string
 }
 
 // Project is the struct of the project to build

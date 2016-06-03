@@ -16,6 +16,7 @@ Name="test"
 Tag="0.0.1"
 TagType=""
 Path="."
+BuildLogFilePath="./test.log"
 BuildCMD="bash -c 'docker build -f Dockerfile_build -t maestro_build . && docker run -v $(pwd)/dist:/opt/bin/ && docker build -t cpg1111/maestro .'"
 TestCMD="go test -v ./..."
 CheckCMD="docker ps -a"
@@ -23,7 +24,7 @@ CreateCMD="docker push cpg1111/maestro"
 UpdateCMD="docker rm -f test && docker run -n test -d test"
 DependsOn=[]
     [HealthCheck]
-    Type="ptrace_attach"
+    Type="PTRACE_ATTACH"
     ExpectedCondition="nil"
     Retrys=3
 

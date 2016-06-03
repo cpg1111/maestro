@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/cpg1111/maestro/config"
 	"github.com/cpg1111/maestro/credentials"
@@ -48,8 +49,10 @@ func certCheckCB(cert *git.Certificate, valid bool, hostname string) git.ErrorCo
 }
 
 var (
-	progbar  *pb.ProgressBar
-	received uint
+	progbar     *pb.ProgressBar
+	received    uint
+	hasFinished = false
+	done        = make(chan bool)
 )
 
 func handleProgress(stats git.TransferProgress) git.ErrorCode {
@@ -61,6 +64,12 @@ func handleProgress(stats git.TransferProgress) git.ErrorCode {
 		progbar.Increment()
 	}
 	received = stats.ReceivedObjects
+	if (int)(received) == (int)(stats.TotalObjects) && !hasFinished {
+		hasFinished = true
+		time.Sleep(time.Second)
+		done <- true
+		return git.ErrOk
+	}
 	return git.ErrOk
 }
 
@@ -87,7 +96,6 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 		Bare:           false,
 		CheckoutBranch: branch,
 	}
-	//conf.CloneOpts.RemoteCreateCallback = createRemote
 	return &Project{
 		conf:      conf.Project,
 		State:     "Pending",
@@ -101,7 +109,30 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 }
 
 // Clone clones a git repo
-func (p *Project) Clone(opts *git.CloneOptions) (*git.Repository, error) {
+func (p *Project) Clone(opts *git.CloneOptions) (resRepo *git.Repository, resErr error) {
 	log.Println("Cloning Repo...")
-	return git.Clone(p.conf.RepoURL, fmt.Sprintf("%s/", p.clonePath), opts)
+	repoChan := make(chan *git.Repository)
+	errChan := make(chan error)
+	go func() {
+		repo, repoErr := git.Clone(p.conf.RepoURL, fmt.Sprintf("%s/", p.clonePath), opts)
+		repoChan <- repo
+		errChan <- repoErr
+	}()
+	var doneMsg bool
+	for {
+		select {
+		case resRepo = <-repoChan:
+			if resRepo != nil && doneMsg {
+				return
+			}
+		case resErr = <-errChan:
+			if resErr != nil && doneMsg {
+				return
+			}
+		case doneMsg = <-done:
+			if resRepo != nil && doneMsg {
+				return
+			}
+		}
+	}
 }
