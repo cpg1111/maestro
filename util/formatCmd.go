@@ -36,14 +36,14 @@ func FormatCommand(strCMD, path string) (*exec.Cmd, error) {
 	cmdLen := len(cmdArr)
 	for i := 1; i < cmdLen; i++ {
 		if strings.Contains(cmdArr[i], ".") {
-			cmdArr[i] = strings.Replace(cmdArr[i], ".", path, 1)
+			cmdArr[i] = strings.Replace(cmdArr[i], "./", path, -1)
 		}
 		if strings.Contains(cmdArr[i], "~") {
 			currUser, userErr := user.Current()
 			if userErr != nil {
 				return &exec.Cmd{}, userErr
 			}
-			cmdArr[i] = strings.Replace(cmdArr[i], "~", currUser.HomeDir, 1)
+			cmdArr[i] = strings.Replace(cmdArr[i], "~/", currUser.HomeDir, -1)
 		}
 		cmd.Args = append(cmd.Args, cmdArr[i])
 	}
