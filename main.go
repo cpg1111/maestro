@@ -58,7 +58,7 @@ func main() {
 	}
 	log.Println("Creating Pipeline...")
 	pipe := pipeline.New(&conf, creds, *clonePath, *checkoutBranch)
-	repo, cloneErr := pipe.Clone(pipe.CloneOpts)
+	repo, cloneErr := pipe.Clone()
 	if cloneErr != nil {
 		log.Fatal(cloneErr)
 	}
