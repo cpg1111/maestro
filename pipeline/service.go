@@ -14,6 +14,8 @@ limitations under the License.
 package pipeline
 
 import (
+	"fmt"
+	"io/ioutil"
 	"log"
 	"os/exec"
 
@@ -82,12 +84,68 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit *string) (bo
 	return true, nil
 }
 
-func execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
+func (s *Service) writeLogFile(done chan string, pipe chan []byte) error {
+	file, readErr := ioutil.ReadFile(s.conf.BuildLogFilePath)
+	noFileExpectedErr := fmt.Errorf("open %s: No such file or directory", s.conf.BuildLogFilePath)
+	for <-done != "done" {
+		if readErr != nil && readErr != noFileExpectedErr {
+			return readErr
+		} else if readErr != noFileExpectedErr && len(file) > 0 {
+			file = append(file, <-pipe...)
+		} else {
+			file = <-pipe
+		}
+	}
+	if len(file) > 0 {
+		writeErr := ioutil.WriteFile(s.conf.BuildLogFilePath, file, 0644)
+		return writeErr
+	}
+	return nil
+}
+
+func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
 	cmd, cmdErr := util.FormatCommand(cmdStr, path)
 	if cmdErr != nil {
 		return cmd, cmdErr
 	}
-	cmd.Run()
+	stdout, stdoutErr := cmd.StdoutPipe()
+	if stdoutErr != nil {
+		return nil, stdoutErr
+	}
+	stderr, stderrErr := cmd.StderrPipe()
+	if stderrErr != nil {
+		return nil, stderrErr
+	}
+	cmd.Start()
+	done := make(chan string)
+	if s.conf.BuildLogFilePath != "" {
+		go func() {
+			pipe := make(chan []byte)
+			go s.writeLogFile(done, pipe)
+			for <-done != "done" {
+				fileArr := make([]byte, 30)
+				_, readErr := stdout.Read(fileArr)
+				if readErr != nil {
+					panic(readErr)
+				}
+				_, readErr = stderr.Read(fileArr)
+				if readErr != nil {
+					panic(readErr)
+				}
+				pipe <- fileArr
+			}
+		}()
+	}
+	cmd.Wait()
+	done <- "done"
+	closeErr := stdout.Close()
+	if closeErr != nil {
+		return cmd, closeErr
+	}
+	closeErr = stderr.Close()
+	if closeErr != nil {
+		return cmd, closeErr
+	}
 	return cmd, nil
 }
 
@@ -107,12 +165,13 @@ func (s *Service) execCheck() (bool, error) {
 }
 
 func (s *Service) execBuild() error {
-	_, err := execSrvCmd(s.conf.BuildCMD, s.conf.Path)
+	_, err := s.execSrvCmd(s.conf.BuildCMD, s.conf.Path)
+	log.Println("Built")
 	return err
 }
 
 func (s *Service) execTests() error {
-	_, err := execSrvCmd(s.conf.TestCMD, s.conf.Path)
+	_, err := s.execSrvCmd(s.conf.TestCMD, s.conf.Path)
 	return err
 }
 
@@ -120,7 +179,7 @@ func (s *Service) execCreate() error {
 	if s.conf.CreateCMD == "" {
 		return nil
 	}
-	cmd, err := execSrvCmd(s.conf.CreateCMD, s.conf.Path)
+	cmd, err := s.execSrvCmd(s.conf.CreateCMD, s.conf.Path)
 	if err != nil {
 		return err
 	}
@@ -135,7 +194,7 @@ func (s *Service) execUpdate() error {
 	if s.conf.UpdateCMD == "" {
 		return nil
 	}
-	cmd, err := execSrvCmd(s.conf.UpdateCMD, s.conf.Path)
+	cmd, err := s.execSrvCmd(s.conf.UpdateCMD, s.conf.Path)
 	if err != nil {
 		return err
 	}

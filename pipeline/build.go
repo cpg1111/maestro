@@ -49,7 +49,7 @@ func runServiceBuild(srvs map[string]*DepService, shouldDeploy *bool) error {
 	doneChan := make(chan string)
 	errChan := make(chan error)
 	for i := range srvs {
-		log.Println("building ", srvs[i].build.conf.Name, srvs[i].build.shouldBuild)
+		log.Println("building ", srvs[i].build.conf.Name)
 		if srvs[i].build.shouldBuild {
 			go build(srvs[i], i, doneChan, errChan, shouldDeploy)
 		}

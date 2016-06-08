@@ -114,7 +114,6 @@ func (p *Project) Clone() (resRepo *git.Repository, resErr error) {
 	repoChan := make(chan *git.Repository)
 	errChan := make(chan error)
 	go func() {
-		log.Println("Starting cloning")
 		repo, repoErr := git.Clone(p.conf.RepoURL, fmt.Sprintf("%s/", p.clonePath), p.CloneOpts)
 		repoChan <- repo
 		errChan <- repoErr
