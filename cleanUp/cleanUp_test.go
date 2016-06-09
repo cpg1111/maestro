@@ -31,6 +31,7 @@ var conf = config.CleanUp{
 	},
 }
 
+// TestHandleCMDs tests handleCMDs
 func TestHandleCMDs(t *testing.T) {
 	cmdErr := handleCMDs(conf.AdditionalCMDs)
 	if cmdErr != nil {
@@ -38,6 +39,7 @@ func TestHandleCMDs(t *testing.T) {
 	}
 }
 
+// TestSaveArtifacts tests saveArtifacts
 func TestSaveArtifacts(t *testing.T) {
 	artifactErr := saveArtifacts(conf.Artifacts)
 	if artifactErr != nil {

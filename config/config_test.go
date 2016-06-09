@@ -56,6 +56,7 @@ func checkStructs(test, expected interface{}) error {
 	return nil
 }
 
+// TestLoad tests the loading of a config file
 func TestLoad(t *testing.T) {
 	expected := &Config{
 		Environment: Environment{

@@ -25,6 +25,7 @@ var conf = &config.Environment{
 	Exec:     []string{"ping github.com"},
 }
 
+// TestSyncRun tests running environment processes running synchronously
 func TestSyncRun(t *testing.T) {
 	job := newJob(conf.ExecSync[0], true).(syncEnvJob)
 	_, runErr := job.Run()
@@ -33,6 +34,7 @@ func TestSyncRun(t *testing.T) {
 	}
 }
 
+// TestConcurrentRun tests running environment processes concurrently
 func TestConcurrentRun(t *testing.T) {
 	job := newJob(conf.Exec[0], false).(concurrentEnvJob)
 	pidChan := make(chan int)
