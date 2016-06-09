@@ -14,10 +14,10 @@ limitations under the License.
 package pipeline
 
 import (
-	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
+	"syscall"
 
 	"github.com/cpg1111/maestro/config"
 	"github.com/cpg1111/maestro/credentials"
@@ -84,23 +84,17 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit *string) (bo
 	return true, nil
 }
 
-func (s *Service) writeLogFile(done chan string, pipe chan []byte) error {
-	file, readErr := ioutil.ReadFile(s.conf.BuildLogFilePath)
-	noFileExpectedErr := fmt.Errorf("open %s: No such file or directory", s.conf.BuildLogFilePath)
-	for <-done != "done" {
-		if readErr != nil && readErr != noFileExpectedErr {
-			return readErr
-		} else if readErr != noFileExpectedErr && len(file) > 0 {
-			file = append(file, <-pipe...)
-		} else {
-			file = <-pipe
-		}
+func (s *Service) getLogFile() (*os.File, error) {
+	stat := &syscall.Stat_t{}
+	statErr := syscall.Stat(s.conf.BuildLogFilePath, stat)
+	falseErrStr := "no such file or directory"
+	if statErr != nil && statErr.Error() != falseErrStr {
+		return nil, statErr
 	}
-	if len(file) > 0 {
-		writeErr := ioutil.WriteFile(s.conf.BuildLogFilePath, file, 0644)
-		return writeErr
+	if stat.Size > 0 {
+		return os.Open(s.conf.BuildLogFilePath)
 	}
-	return nil
+	return os.Create(s.conf.BuildLogFilePath)
 }
 
 func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
@@ -108,44 +102,14 @@ func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
 	if cmdErr != nil {
 		return cmd, cmdErr
 	}
-	stdout, stdoutErr := cmd.StdoutPipe()
-	if stdoutErr != nil {
-		return nil, stdoutErr
-	}
-	stderr, stderrErr := cmd.StderrPipe()
-	if stderrErr != nil {
-		return nil, stderrErr
-	}
-	cmd.Start()
-	done := make(chan string)
 	if s.conf.BuildLogFilePath != "" {
-		go func() {
-			pipe := make(chan []byte)
-			go s.writeLogFile(done, pipe)
-			for <-done != "done" {
-				fileArr := make([]byte, 30)
-				_, readErr := stdout.Read(fileArr)
-				if readErr != nil {
-					panic(readErr)
-				}
-				_, readErr = stderr.Read(fileArr)
-				if readErr != nil {
-					panic(readErr)
-				}
-				pipe <- fileArr
-			}
-		}()
+		logFile, openErr := s.getLogFile()
+		if openErr != nil {
+			return cmd, openErr
+		}
+		cmd.Stdout = logFile
 	}
-	cmd.Wait()
-	done <- "done"
-	closeErr := stdout.Close()
-	if closeErr != nil {
-		return cmd, closeErr
-	}
-	closeErr = stderr.Close()
-	if closeErr != nil {
-		return cmd, closeErr
-	}
+	cmd.Run()
 	return cmd, nil
 }
 
@@ -200,7 +164,14 @@ func (s *Service) execUpdate() error {
 	}
 	if s.conf.HealthCheck.Type == "PTRACE_ATTACH" {
 		passPid := HealthCheck(&s.conf).(func(pid int) error)
-		return passPid(cmd.Process.Pid).(error)
+		passed := passPid(cmd.Process.Pid)
+		if passed != nil {
+			return passed.(error)
+		}
 	}
-	return HealthCheck(&s.conf).(error)
+	checkRes := HealthCheck(&s.conf)
+	if checkRes != nil {
+		return checkRes.(error)
+	}
+	return nil
 }
