@@ -35,3 +35,5 @@ dist/
 # vim swp files
 *.swp
 
+# log files
+*.log
