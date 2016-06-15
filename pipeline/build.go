@@ -25,11 +25,13 @@ func build(srv *DepService, index string, done chan string, errChan chan error, 
 		errChan <- err
 		return
 	}
+	log.Println("Run tests")
 	err = RunTests(srv.build)
 	if err != nil {
 		errChan <- err
 		return
 	}
+	log.Println("Tests done")
 	if !*shouldDeploy {
 		done <- index
 		return

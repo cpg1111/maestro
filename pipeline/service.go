@@ -151,7 +151,9 @@ func (s *Service) execBuild() error {
 }
 
 func (s *Service) execTests() error {
+	log.Println("Testing")
 	_, err := s.execSrvCmd(s.conf.TestCMD, s.conf.Path)
+	log.Println("Tested")
 	return err
 }
 
