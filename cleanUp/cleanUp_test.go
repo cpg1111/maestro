@@ -25,8 +25,8 @@ var conf = config.CleanUp{
 	InDaemon:       false,
 	Artifacts: []config.Artifact{
 		config.Artifact{
-			RuntimeFilePath: "./dist/maestro",
-			SaveFilePath:    "/tmp/",
+			RuntimeFilePath: "../test.log",
+			SaveFilePath:    "/tmp/test.log",
 		},
 	},
 }

@@ -28,12 +28,13 @@ import (
 
 // Service is a struct for services in the pipeline
 type Service struct {
-	conf        config.Service
-	Diff        bool
-	State       string
-	creds       *credentials.RawCredentials
-	index       *git.Index
-	shouldBuild bool
+	conf          config.Service
+	Diff          bool
+	State         string
+	creds         *credentials.RawCredentials
+	index         *git.Index
+	shouldBuild   bool
+	logFileOffset int64
 }
 
 // NewService returns an instance of a pipeline service
@@ -107,9 +108,24 @@ func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
 		if openErr != nil {
 			return cmd, openErr
 		}
-		cmd.Stdout = logFile
+		log.Println(logFile)
+		output, outputErr := cmd.Output()
+		offset, writeErr := logFile.WriteAt(output, s.logFileOffset)
+		if outputErr != nil {
+			return cmd, outputErr
+		}
+		if writeErr != nil {
+			return cmd, writeErr
+		}
+		s.logFileOffset = (int64)(offset)
+	} else {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		runErr := cmd.Run()
+		if runErr != nil {
+			return cmd, runErr
+		}
 	}
-	cmd.Run()
 	return cmd, nil
 }
 
