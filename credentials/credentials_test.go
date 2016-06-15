@@ -19,6 +19,7 @@ import (
 	"github.com/cpg1111/maestro/config"
 )
 
+// TestToGitCredentials tests converting loaded credentials to git2go credentials
 func TestToGitCredentials(t *testing.T) {
 	conf, loadErr := config.Load("../test_conf.toml", ".")
 	if loadErr != nil {

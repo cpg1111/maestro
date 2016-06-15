@@ -40,7 +40,7 @@ func checkStructs(test, expected interface{}) error {
 					return fmt.Errorf("Exepcted %s for DependsOn of %d, found %s", expectedArr[dep], dep, testArr[dep])
 				}
 			}
-		} else if key == "HealthCheck" {
+		} else if key == "HealthCheck" || key == "CleanUp" || key == "Artifacts" {
 			testSubMap := val.(map[string]interface{})
 			expectedSubMap := expectedVal.(map[string]interface{})
 			for i := range expectedSubMap {
@@ -48,14 +48,14 @@ func checkStructs(test, expected interface{}) error {
 					return fmt.Errorf("Exepcted %v for %v, found %v %+v", expectedSubMap[i], i, testSubMap[i], testSubMap)
 				}
 			}
-		}
-		if val == nil || val != expectedVal {
+		} else if val == nil || val != expectedVal {
 			return fmt.Errorf("Exepcted %s for %s, found %s", expectedVal, key, val)
 		}
 	}
 	return nil
 }
 
+// TestLoad tests the loading of a config file
 func TestLoad(t *testing.T) {
 	expected := &Config{
 		Environment: Environment{
@@ -83,12 +83,12 @@ func TestLoad(t *testing.T) {
 				CheckCMD:         "docker ps -a",
 				CreateCMD:        "docker push cpg1111/maestro",
 				UpdateCMD:        "docker rm -f test && docker run -n test -d test",
+				DependsOn:        []string{},
 				HealthCheck: HealthCheck{
-					Type:              "PTRACE_ATTACH",
-					ExpectedCondition: "nil",
-					Retrys:            3,
+					Type:              "",
+					ExpectedCondition: "",
+					Retrys:            0,
 				},
-				DependsOn: []string{},
 			},
 		},
 		CleanUp: CleanUp{

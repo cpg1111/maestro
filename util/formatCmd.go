@@ -14,7 +14,6 @@ limitations under the License.
 package util
 
 import (
-	"os"
 	"os/exec"
 	"os/user"
 	"strings"
@@ -47,7 +46,5 @@ func FormatCommand(strCMD, path string) (*exec.Cmd, error) {
 		}
 		cmd.Args = append(cmd.Args, cmdArr[i])
 	}
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	return cmd, nil
 }

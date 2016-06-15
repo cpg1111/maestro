@@ -109,12 +109,12 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 }
 
 // Clone clones a git repo
-func (p *Project) Clone(opts *git.CloneOptions) (resRepo *git.Repository, resErr error) {
+func (p *Project) Clone() (resRepo *git.Repository, resErr error) {
 	log.Println("Cloning Repo...")
 	repoChan := make(chan *git.Repository)
 	errChan := make(chan error)
 	go func() {
-		repo, repoErr := git.Clone(p.conf.RepoURL, fmt.Sprintf("%s/", p.clonePath), opts)
+		repo, repoErr := git.Clone(p.conf.RepoURL, fmt.Sprintf("%s/", p.clonePath), p.CloneOpts)
 		repoChan <- repo
 		errChan <- repoErr
 	}()

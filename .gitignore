@@ -31,3 +31,9 @@ testClone/
 
 # dist dir
 dist/
+
+# vim swp files
+*.swp
+
+# log files
+*.log

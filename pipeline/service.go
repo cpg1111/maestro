@@ -15,7 +15,9 @@ package pipeline
 
 import (
 	"log"
+	"os"
 	"os/exec"
+	"syscall"
 
 	"github.com/cpg1111/maestro/config"
 	"github.com/cpg1111/maestro/credentials"
@@ -26,12 +28,13 @@ import (
 
 // Service is a struct for services in the pipeline
 type Service struct {
-	conf        config.Service
-	Diff        bool
-	State       string
-	creds       *credentials.RawCredentials
-	index       *git.Index
-	shouldBuild bool
+	conf          config.Service
+	Diff          bool
+	State         string
+	creds         *credentials.RawCredentials
+	index         *git.Index
+	shouldBuild   bool
+	logFileOffset int64
 }
 
 // NewService returns an instance of a pipeline service
@@ -82,12 +85,47 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit *string) (bo
 	return true, nil
 }
 
-func execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
+func (s *Service) getLogFile() (*os.File, error) {
+	stat := &syscall.Stat_t{}
+	statErr := syscall.Stat(s.conf.BuildLogFilePath, stat)
+	falseErrStr := "no such file or directory"
+	if statErr != nil && statErr.Error() != falseErrStr {
+		return nil, statErr
+	}
+	if stat.Size > 0 {
+		return os.Open(s.conf.BuildLogFilePath)
+	}
+	return os.Create(s.conf.BuildLogFilePath)
+}
+
+func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
 	cmd, cmdErr := util.FormatCommand(cmdStr, path)
 	if cmdErr != nil {
 		return cmd, cmdErr
 	}
-	cmd.Run()
+	if s.conf.BuildLogFilePath != "" {
+		logFile, openErr := s.getLogFile()
+		if openErr != nil {
+			return cmd, openErr
+		}
+		log.Println(logFile)
+		output, outputErr := cmd.Output()
+		offset, writeErr := logFile.WriteAt(output, s.logFileOffset)
+		if outputErr != nil {
+			return cmd, outputErr
+		}
+		if writeErr != nil {
+			return cmd, writeErr
+		}
+		s.logFileOffset = (int64)(offset)
+	} else {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		runErr := cmd.Run()
+		if runErr != nil {
+			return cmd, runErr
+		}
+	}
 	return cmd, nil
 }
 
@@ -107,12 +145,15 @@ func (s *Service) execCheck() (bool, error) {
 }
 
 func (s *Service) execBuild() error {
-	_, err := execSrvCmd(s.conf.BuildCMD, s.conf.Path)
+	_, err := s.execSrvCmd(s.conf.BuildCMD, s.conf.Path)
+	log.Println("Built")
 	return err
 }
 
 func (s *Service) execTests() error {
-	_, err := execSrvCmd(s.conf.TestCMD, s.conf.Path)
+	log.Println("Testing")
+	_, err := s.execSrvCmd(s.conf.TestCMD, s.conf.Path)
+	log.Println("Tested")
 	return err
 }
 
@@ -120,7 +161,7 @@ func (s *Service) execCreate() error {
 	if s.conf.CreateCMD == "" {
 		return nil
 	}
-	cmd, err := execSrvCmd(s.conf.CreateCMD, s.conf.Path)
+	cmd, err := s.execSrvCmd(s.conf.CreateCMD, s.conf.Path)
 	if err != nil {
 		return err
 	}
@@ -135,13 +176,20 @@ func (s *Service) execUpdate() error {
 	if s.conf.UpdateCMD == "" {
 		return nil
 	}
-	cmd, err := execSrvCmd(s.conf.UpdateCMD, s.conf.Path)
+	cmd, err := s.execSrvCmd(s.conf.UpdateCMD, s.conf.Path)
 	if err != nil {
 		return err
 	}
 	if s.conf.HealthCheck.Type == "PTRACE_ATTACH" {
 		passPid := HealthCheck(&s.conf).(func(pid int) error)
-		return passPid(cmd.Process.Pid).(error)
+		passed := passPid(cmd.Process.Pid)
+		if passed != nil {
+			return passed.(error)
+		}
 	}
-	return HealthCheck(&s.conf).(error)
+	checkRes := HealthCheck(&s.conf)
+	if checkRes != nil {
+		return checkRes.(error)
+	}
+	return nil
 }

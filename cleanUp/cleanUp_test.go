@@ -25,12 +25,13 @@ var conf = config.CleanUp{
 	InDaemon:       false,
 	Artifacts: []config.Artifact{
 		config.Artifact{
-			RuntimeFilePath: "./dist/maestro",
-			SaveFilePath:    "/tmp/",
+			RuntimeFilePath: "../test.log",
+			SaveFilePath:    "/tmp/test.log",
 		},
 	},
 }
 
+// TestHandleCMDs tests handleCMDs
 func TestHandleCMDs(t *testing.T) {
 	cmdErr := handleCMDs(conf.AdditionalCMDs)
 	if cmdErr != nil {
@@ -38,6 +39,7 @@ func TestHandleCMDs(t *testing.T) {
 	}
 }
 
+// TestSaveArtifacts tests saveArtifacts
 func TestSaveArtifacts(t *testing.T) {
 	artifactErr := saveArtifacts(conf.Artifacts)
 	if artifactErr != nil {

@@ -26,8 +26,8 @@ import (
 )
 
 var (
-	confPath        = flag.String("config", "./conf.toml", "Path to the config for maestro to use")
-	clonePath       = flag.String("clone-path", "./", "Local path to clone repo to defaults to PWD")
+	confPath        = flag.String("config", "/etc/maestro/conf.toml", "Path to the config for maestro to use")
+	clonePath       = flag.String("clone-path", "/tmp/clone", "Local path to clone repo to defaults to PWD")
 	checkoutBranch  = flag.String("branch", "master", "Git branch to checkout for project")
 	lastBuildCommit = flag.String("prev-commit", "", "Previous commit to compare to")
 	deploy          = flag.Bool("deploy", false, "Whether or not to deploy this build")
@@ -38,6 +38,11 @@ func main() {
 	if *lastBuildCommit == "" {
 		log.Println("Maestro requires a previous commit to build from.")
 		os.Exit(1)
+	}
+	clPath := *clonePath
+	if clPath[len(clPath)-1] == '/' {
+		clPath = clPath[0:(len(clPath) - 1)]
+		clonePath = &clPath
 	}
 	log.Println("Loading Configuration...")
 	conf, confErr := config.Load(*confPath, *clonePath)
@@ -58,7 +63,7 @@ func main() {
 	}
 	log.Println("Creating Pipeline...")
 	pipe := pipeline.New(&conf, creds, *clonePath, *checkoutBranch)
-	repo, cloneErr := pipe.Clone(pipe.CloneOpts)
+	repo, cloneErr := pipe.Clone()
 	if cloneErr != nil {
 		log.Fatal(cloneErr)
 	}
