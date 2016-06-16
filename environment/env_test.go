@@ -15,6 +15,7 @@ package environment
 
 import (
 	"testing"
+	"time"
 
 	"github.com/cpg1111/maestro/config"
 	"github.com/cpg1111/maestro/util"
@@ -22,7 +23,7 @@ import (
 
 var conf = &config.Environment{
 	ExecSync: []string{"echo '1'"},
-	Exec:     []string{"ping github.com"},
+	Exec:     []string{"docker run --rm -d nginx"},
 }
 
 // TestSyncRun tests running environment processes running synchronously
@@ -43,17 +44,24 @@ func TestConcurrentRun(t *testing.T) {
 	go job.Run(pidChan, errChan)
 	for {
 		select {
+		case <-time.After(3 * time.Second):
+			t.Error("concurrentEnvJob timed out")
+			break
 		case pid := <-pidChan:
 			go util.CheckForProcess(pid, foundChan, errChan)
+			break
 		case err := <-errChan:
 			if err != nil {
 				t.Error(err)
+				return
 			}
+			break
 		case found := <-foundChan:
 			if found {
 				return
 			}
-			t.Error("Could not find child process")
+			t.Error("could not find child process")
+			break
 		}
 	}
 }
