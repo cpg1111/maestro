@@ -29,7 +29,6 @@ import (
 // Service is a struct for services in the pipeline
 type Service struct {
 	conf          config.Service
-	Diff          bool
 	State         string
 	creds         *credentials.RawCredentials
 	index         *git.Index
@@ -41,7 +40,6 @@ type Service struct {
 func NewService(srv config.Service, creds *credentials.RawCredentials) *Service {
 	return &Service{
 		conf:        srv,
-		Diff:        false,
 		State:       "Pending",
 		creds:       creds,
 		index:       nil,
