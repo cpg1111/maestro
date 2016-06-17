@@ -43,10 +43,18 @@ func (c *concurrentEnvJob) Run(pid chan int, status chan error) {
 	c.cmd.Stderr = os.Stderr
 	c.cmd.Stdout = os.Stdout
 	err := c.cmd.Start()
-	status <- err
+	if err != nil {
+		status <- err
+	} else {
+		status <- nil
+	}
 	pid <- c.cmd.Process.Pid
 	err = c.cmd.Wait()
-	status <- err
+	if err != nil {
+		status <- err
+	} else {
+		status <- nil
+	}
 }
 
 func newJob(cmdStr string, sync bool) envJob {
