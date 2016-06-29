@@ -26,6 +26,10 @@ _testmain.go
 # Godeps
 Godeps/_workspace
 
+# Vendors
+vendor/*
+!vendor/vendor.json
+
 # Test Repo Clone
 testClone/
 

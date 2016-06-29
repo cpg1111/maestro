@@ -1,0 +1,45 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "1IeSD7UyLXPqBP1nbaqpT9fSanQ=",
+			"comment": "v0.2.0",
+			"path": "github.com/BurntSushi/toml",
+			"revision": "bbd5bb678321a0d6e58f1099321dfa73391c1b6f"
+		},
+		{
+			"checksumSHA1": "vg41Q7MPlkYzwJR4d5IxpfyhfLU=",
+			"path": "github.com/fatih/structs",
+			"revision": "73c4e3dc02a78deaba8640d5f3a8c236ec1352bf"
+		},
+		{
+			"checksumSHA1": "WI+JevQX15p9zqngb1BMHvrPAgU=",
+			"path": "github.com/howeyc/gopass",
+			"revision": "66487b23f2880ba32e185121d2cd51a338ea069a"
+		},
+		{
+			"checksumSHA1": "iL2je7wjBlCR+XbSZdkuDauSQtQ=",
+			"comment": "v1.2.0-4-gf3218e4",
+			"path": "github.com/segmentio/go-prompt",
+			"revision": "f3218e418a3d6dbe1dcab5809d80fa6e15c05cb4"
+		},
+		{
+			"checksumSHA1": "N5fb5y92DFIP+wUhi1rSwPp9vyk=",
+			"path": "golang.org/x/crypto/ssh/terminal",
+			"revision": "1777f3ba8c1fed80fcaec3317e3aaa4f627764d2"
+		},
+		{
+			"checksumSHA1": "E6Dm45BW1hdT9lxQQR4bKhMdrhY=",
+			"comment": "v1.0.3",
+			"path": "gopkg.in/cheggaaa/pb.v1",
+			"revision": "8808370bf63524e115da1371ba42bce6739f3a6b"
+		},
+		{
+			"checksumSHA1": "wQudIit83haY5Ip3FD9Uxlz4QZA=",
+			"path": "gopkg.in/libgit2/git2go.v22",
+			"revision": "41ad00f868e7dfcdb04c7538f27350d400f710a3"
+		}
+	],
+	"rootPath": "github.com/cpg1111/maestro"
+}
