@@ -24,10 +24,8 @@ cd $GOPATH/src/github.com/cpg1111/maestro/ && \
 rm -rf libgit2-0.22.0 && \
 rm v0.22.0.tar.gz && \
 cd $GOPATH && \
-go get github.com/tools/godep && \
+go get github.com/kardianos/govendor && \
 cd $GOPATH/src/github.com/cpg1111/maestro/ && \
-rm -rf ./Godeps/_workspace/ && \
-godep restore ./... && \
+govendor sync && \
 go build --ldflags '-extldflags "-static"' -o maestro github.com/cpg1111/maestro/ && \
-# ldd ./maestro && \
 cp ./maestro /opt/bin/
