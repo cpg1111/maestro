@@ -76,10 +76,10 @@ func runServiceBuild(srvs map[string]*DepService, shouldDeploy *bool) error {
 }
 
 // Run runs the build for all changed services
-func Run(depTrees []*DepTree, repo *git.Repository, lastBuildCommit *string, shouldDeploy *bool) error {
+func Run(depTrees []*DepTree, repo *git.Repository, lastBuildCommit, currBuildCommit *string, shouldDeploy *bool) error {
 	log.Println("run")
 	for i := range depTrees {
-		travErr := TraverseTree(depTrees[i].CurrNode, repo, lastBuildCommit)
+		travErr := TraverseTree(depTrees[i].CurrNode, repo, lastBuildCommit, currBuildCommit)
 		if travErr != nil {
 			return travErr
 		}

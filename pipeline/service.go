@@ -47,8 +47,29 @@ func NewService(srv config.Service, creds *credentials.RawCredentials) *Service 
 	}
 }
 
+func diffToWorkingDir(repo *git.Repository, prev *git.Tree, opts *git.DiffOptions) (*git.Diff, error) {
+	return repo.DiffTreeToWorkdir(prev, opts)
+}
+
+func diffToMostRecentCommit(repo *git.Repository, prev *git.Tree, opts *git.DiffOptions, currCommit string) (*git.Diff, error) {
+	currCommitObject, _, parseErr := repo.RevparseExt(currCommit)
+	if parseErr != nil {
+		return nil, parseErr
+	}
+	currCommitID := currCommitObject.Id()
+	currCommitRef, lookupErr := repo.LookupCommit(currCommitID)
+	if lookupErr != nil {
+		return nil, lookupErr
+	}
+	currTree, treeErr := currCommitRef.Tree()
+	if treeErr != nil {
+		return nil, treeErr
+	}
+	return repo.DiffTreeToTree(prev, currTree, opts)
+}
+
 // ShouldBuild diffs a service's path and determs whether or not it needs to run the pipeline on it
-func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit *string) (bool, error) {
+func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCommit *string) (bool, error) {
 	log.Println("diff")
 	prevCommitObject, _, parseErr := repo.RevparseExt(*lastBuildCommit)
 	if parseErr != nil {
@@ -68,7 +89,13 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit *string) (bo
 		IgnoreSubmodules: git.SubmoduleIgnoreNone,
 		Pathspec:         []string{s.conf.Path},
 	}
-	diff, diffErr := repo.DiffTreeToWorkdir(prevTree, diffOpts)
+	var diff *git.Diff
+	var diffErr error
+	if *currBuildCommit == "" {
+		diff, diffErr = diffToWorkingDir(repo, prevTree, diffOpts)
+	} else {
+		diff, diffErr = diffToMostRecentCommit(repo, prevTree, diffOpts, *currBuildCommit)
+	}
 	if diffErr != nil {
 		return false, diffErr
 	}
