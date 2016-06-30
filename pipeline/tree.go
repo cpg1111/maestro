@@ -26,18 +26,18 @@ type DepTree struct {
 }
 
 // TraverseTree traverses a dependency tree
-func TraverseTree(depSrv *DepService, repo *git.Repository, lastBuildCommit *string) error {
+func TraverseTree(depSrv *DepService, repo *git.Repository, lastBuildCommit, currBuildCommit *string) error {
 	if depSrv == nil {
 		return errors.New("Service is nil in tree")
 	}
-	shouldBuild, buildErr := depSrv.build.ShouldBuild(repo, lastBuildCommit)
+	shouldBuild, buildErr := depSrv.build.ShouldBuild(repo, lastBuildCommit, currBuildCommit)
 	if buildErr != nil {
 		return buildErr
 	}
 	if shouldBuild {
 		for i := range depSrv.Children {
 			depSrv.Children[i].build.shouldBuild = true
-			travErr := TraverseTree(depSrv.Children[i], repo, lastBuildCommit)
+			travErr := TraverseTree(depSrv.Children[i], repo, lastBuildCommit, currBuildCommit)
 			if travErr != nil {
 				return travErr
 			}
