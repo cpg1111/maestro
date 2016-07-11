@@ -22,7 +22,7 @@ import (
 // FormatCommand formats a string to an exec'able command
 func FormatCommand(strCMD, path string) (*exec.Cmd, error) {
 	var cmdArr []string
-	if strings.Contains(strCMD[0:8], "bash -c") {
+	if len(strCMD) >= 8 && strings.Contains(strCMD[0:8], "bash -c") {
 		cmdArr = []string{strCMD[0:4], strCMD[5:7], strCMD[8:]}
 	} else {
 		cmdArr = strings.Split(strCMD, " ")

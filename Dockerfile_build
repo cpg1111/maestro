@@ -1,6 +1,6 @@
 FROM golang:1.6
 ADD . /go/src/github.com/cpg1111/maestro/
-RUN echo $PATH && apt-get update && apt-get install -y cmake build-essential pkgconf
+RUN echo $PATH && apt-get update && apt-get install -y cmake build-essential pkgconf openssl libssl-dev libssh-dev
 ENV PATH $PATH:$GOPATH/bin
 WORKDIR /go/src/github.com/cpg1111/maestro/
 ENTRYPOINT ["./build.sh"]
