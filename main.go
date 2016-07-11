@@ -41,6 +41,12 @@ func main() {
 		log.Println("Maestro requires a previous commit to build from.")
 		os.Exit(1)
 	}
+    os.Setenv("LAST_COMMIT", *lastBuildCommit)
+    if *currBuildCommit != "" {
+        os.Setenv("CURR_COMMIT", *currBuildCommit)
+    } else {
+        os.Setenv("CURR_COMMIT", "HEAD")
+    }
 	clPath := *clonePath
 	if clPath[len(clPath)-1] == '/' {
 		clPath = clPath[0:(len(clPath) - 1)]
