@@ -56,7 +56,7 @@ var (
 )
 
 func handleProgress(stats git.TransferProgress) git.ErrorCode {
-    log.Println("Cloning...")
+	log.Println("Cloning...")
 	if progbar == nil {
 		progbar = pb.StartNew((int)(stats.TotalObjects))
 	}

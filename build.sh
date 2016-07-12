@@ -2,7 +2,11 @@
 
 # For build docker container's ENTRYPOINT
 
-apt-get install -y cmake build-essential pkgconf openssl libssl-dev libssh-dev curl
+CMAKE_INCLUDE_PATH=$CMAKE_INCLUDE_PATH:/usr/include/:/usr/local/include/
+CMAKE_LIBRARY_PATH=$CMAKE_LIBRARY_PATH:/usr/lib/:/usr/local/lib/
+OPENSSL_INCLUDE_DIR=/usr/include/
+OPENSSL_OPENSSL_LIBRARIES=/usr/lib/
+
 curl -L -o v0.22.0.tar.gz -z v0.22.0.tar.gz https://github.com/libgit2/libgit2/archive/v0.22.0.tar.gz && \
 tar xzvf v0.22.0.tar.gz && \
 cd libgit2-0.22.0 && \
