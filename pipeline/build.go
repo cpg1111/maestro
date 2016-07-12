@@ -50,29 +50,34 @@ func runServiceBuild(srvs map[string]*DepService, testAll, shouldDeploy *bool) e
 	log.Println("building services")
 	doneChan := make(chan string)
 	errChan := make(chan error)
+	buildTotal := 0
 	for i := range srvs {
 		log.Println("building ", srvs[i].build.conf.Name)
 		if srvs[i].build.shouldBuild || *testAll {
+			buildTotal++
 			go build(srvs[i], i, doneChan, errChan, shouldDeploy)
 		}
 	}
 	total := 0
-	for {
-		select {
-		case index := <-doneChan:
-			total++
-			if len(srvs[index].Children) > 0 {
-				runServiceBuild(srvs[index].Children, testAll, shouldDeploy)
-			}
-			if total == len(srvs) {
-				return nil
-			}
-		case errMsg := <-errChan:
-			if errMsg != nil {
-				return errMsg
+	if buildTotal > 0 {
+		for {
+			select {
+			case index := <-doneChan:
+				total++
+				if len(srvs[index].Children) > 0 {
+					runServiceBuild(srvs[index].Children, testAll, shouldDeploy)
+				}
+				if total == buildTotal {
+					return nil
+				}
+			case errMsg := <-errChan:
+				if errMsg != nil {
+					return errMsg
+				}
 			}
 		}
 	}
+	return nil
 }
 
 // Run runs the build for all changed services

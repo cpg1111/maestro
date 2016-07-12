@@ -34,13 +34,11 @@ func TraverseTree(depSrv *DepService, repo *git.Repository, lastBuildCommit, cur
 	if buildErr != nil {
 		return buildErr
 	}
-	if shouldBuild {
-		for i := range depSrv.Children {
-			depSrv.Children[i].build.shouldBuild = true
-			travErr := TraverseTree(depSrv.Children[i], repo, lastBuildCommit, currBuildCommit)
-			if travErr != nil {
-				return travErr
-			}
+	for i := range depSrv.Children {
+		depSrv.Children[i].build.shouldBuild = shouldBuild
+		travErr := TraverseTree(depSrv.Children[i], repo, lastBuildCommit, currBuildCommit)
+		if travErr != nil {
+			return travErr
 		}
 	}
 	return nil
@@ -62,7 +60,7 @@ func dependsOnChild(child, parent *DepService) int {
 	return -1
 }
 
-func getDependencies(depSrv *DepService, created map[string]*DepService, proj *Project) {
+func getDependencies(depSrv *DepService, created map[string]*DepService, proj *Project) (newDepTrees []*DepTree) {
 	for j := range depSrv.build.conf.DependsOn {
 		if created[depSrv.build.conf.DependsOn[j]] != nil {
 			youngerParentIndex := dependsOnChild(depSrv, created[depSrv.build.conf.DependsOn[j]])
@@ -76,13 +74,17 @@ func getDependencies(depSrv *DepService, created map[string]*DepService, proj *P
 				}
 			}
 		} else {
-			parent := &DepService{build: proj.Services[depSrv.build.conf.DependsOn[j]]}
-			depSrv.Parent = parent
-			if parent.Children[depSrv.build.conf.Name] == nil {
-				parent.Children[depSrv.build.conf.Name] = depSrv
+			parent := &DepService{
+				build:    proj.Services[depSrv.build.conf.DependsOn[j]],
+				Children: make(map[string]*DepService),
 			}
+			depSrv.Parent = parent
+			created[depSrv.build.conf.DependsOn[j]] = parent
+			parent.Children[depSrv.build.conf.Name] = depSrv
+			newDepTrees = append(newDepTrees, &DepTree{CurrNode: parent})
 		}
 	}
+	return
 }
 
 // NewTreeList returns a list of dependency trees
@@ -101,7 +103,10 @@ func NewTreeList(proj *Project) []*DepTree {
 			newTrees = append(newTrees, &DepTree{CurrNode: depSrv})
 			created[depSrv.build.conf.Name] = depSrv
 		} else {
-			getDependencies(depSrv, created, proj)
+			otherTrees := getDependencies(depSrv, created, proj)
+			if len(otherTrees) > 0 {
+				newTrees = append(newTrees, otherTrees...)
+			}
 		}
 	}
 	return newTrees
