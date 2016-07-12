@@ -34,16 +34,20 @@ type Service struct {
 	index         *git.Index
 	shouldBuild   bool
 	logFileOffset int64
+	lastCommit    string
+	currCommit    string
 }
 
 // NewService returns an instance of a pipeline service
-func NewService(srv config.Service, creds *credentials.RawCredentials) *Service {
+func NewService(srv config.Service, creds *credentials.RawCredentials, last, curr string) *Service {
 	return &Service{
 		conf:        srv,
 		State:       "Pending",
 		creds:       creds,
 		index:       nil,
 		shouldBuild: false,
+		lastCommit:  last,
+		currCommit:  curr,
 	}
 }
 
@@ -124,6 +128,10 @@ func (s *Service) getLogFile() (*os.File, error) {
 }
 
 func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
+	cmdStr, tmplErr := util.TemplateCommits(cmdStr, s.lastCommit, s.currCommit)
+	if tmplErr != nil {
+		return nil, tmplErr
+	}
 	cmd, cmdErr := util.FormatCommand(cmdStr, path)
 	if cmdErr != nil {
 		return cmd, cmdErr
@@ -158,7 +166,11 @@ func (s *Service) execCheck() (bool, error) {
 	if s.conf.CheckCMD == "" {
 		return true, nil
 	}
-	cmd, cmdErr := util.FormatCommand(s.conf.CheckCMD, s.conf.Path)
+	cmdStr, tmplErr := util.TemplateCommits(s.conf.CheckCMD, s.lastCommit, s.currCommit)
+	if tmplErr != nil {
+		return false, tmplErr
+	}
+	cmd, cmdErr := util.FormatCommand(cmdStr, s.conf.Path)
 	if cmdErr != nil {
 		return false, cmdErr
 	}

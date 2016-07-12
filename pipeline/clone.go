@@ -56,7 +56,6 @@ var (
 )
 
 func handleProgress(stats git.TransferProgress) git.ErrorCode {
-	log.Println("Cloning...")
 	if progbar == nil {
 		progbar = pb.StartNew((int)(stats.TotalObjects))
 	}
@@ -75,10 +74,10 @@ func handleProgress(stats git.TransferProgress) git.ErrorCode {
 }
 
 // New returns a new instance of a pipeline project
-func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, branch string) *Project {
+func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, branch, last, curr string) *Project {
 	newServices := make(map[string]*Service)
 	for i := range conf.Services {
-		newServices[conf.Services[i].Name] = NewService(conf.Services[i], creds)
+		newServices[conf.Services[i].Name] = NewService(conf.Services[i], creds, last, curr)
 	}
 	cwd, cwdErr := os.Getwd()
 	if cwdErr != nil {

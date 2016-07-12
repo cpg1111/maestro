@@ -41,12 +41,12 @@ func main() {
 		log.Println("Maestro requires a previous commit to build from.")
 		os.Exit(1)
 	}
-    os.Setenv("LAST_COMMIT", *lastBuildCommit)
-    if *currBuildCommit != "" {
-        os.Setenv("CURR_COMMIT", *currBuildCommit)
-    } else {
-        os.Setenv("CURR_COMMIT", "HEAD")
-    }
+	os.Setenv("LAST_COMMIT", *lastBuildCommit)
+	if *currBuildCommit != "" {
+		os.Setenv("CURR_COMMIT", *currBuildCommit)
+	} else {
+		os.Setenv("CURR_COMMIT", "HEAD")
+	}
 	clPath := *clonePath
 	if clPath[len(clPath)-1] == '/' {
 		clPath = clPath[0:(len(clPath) - 1)]
@@ -70,7 +70,7 @@ func main() {
 		}
 	}
 	log.Println("Creating Pipeline...")
-	pipe := pipeline.New(&conf, creds, *clonePath, *checkoutBranch)
+	pipe := pipeline.New(&conf, creds, *clonePath, *checkoutBranch, *lastBuildCommit, *currBuildCommit)
 	repo, cloneErr := pipe.Clone()
 	if cloneErr != nil {
 		log.Fatal(cloneErr)
