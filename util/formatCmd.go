@@ -15,6 +15,7 @@ package util
 
 import (
 	"bytes"
+	"fmt"
 	"os/exec"
 	"os/user"
 	"strings"
@@ -57,7 +58,10 @@ func FormatCommand(strCMD, path string) (*exec.Cmd, error) {
 	cmd := exec.Command(cmdPath)
 	cmdLen := len(cmdArr)
 	for i := 1; i < cmdLen; i++ {
-		if strings.Contains(cmdArr[i], ".") {
+		if strings.Contains(cmdArr[i], "./") {
+			if path[len(path)-1] != '/' {
+				path = fmt.Sprintf("%s/", path)
+			}
 			cmdArr[i] = strings.Replace(cmdArr[i], "./", path, -1)
 		}
 		if strings.Contains(cmdArr[i], "~") {
@@ -65,7 +69,7 @@ func FormatCommand(strCMD, path string) (*exec.Cmd, error) {
 			if userErr != nil {
 				return &exec.Cmd{}, userErr
 			}
-			cmdArr[i] = strings.Replace(cmdArr[i], "~/", currUser.HomeDir, -1)
+			cmdArr[i] = strings.Replace(cmdArr[i], "~", currUser.HomeDir, -1)
 		}
 		cmd.Args = append(cmd.Args, cmdArr[i])
 	}
