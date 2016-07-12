@@ -56,7 +56,7 @@ func diffToWorkingDir(repo *git.Repository, prev *git.Tree, opts *git.DiffOption
 }
 
 func diffToMostRecentCommit(repo *git.Repository, prev *git.Tree, opts *git.DiffOptions, currCommit string) (*git.Diff, error) {
-	currCommitObject, _, parseErr := repo.RevparseExt(currCommit)
+	currCommitObject, parseErr := repo.RevparseSingle(currCommit)
 	if parseErr != nil {
 		return nil, parseErr
 	}
@@ -75,7 +75,7 @@ func diffToMostRecentCommit(repo *git.Repository, prev *git.Tree, opts *git.Diff
 // ShouldBuild diffs a service's path and determs whether or not it needs to run the pipeline on it
 func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCommit *string) (bool, error) {
 	log.Println("diff")
-	prevCommitObject, _, parseErr := repo.RevparseExt(*lastBuildCommit)
+	prevCommitObject, parseErr := repo.RevparseSingle(*lastBuildCommit)
 	if parseErr != nil {
 		return false, parseErr
 	}
@@ -88,17 +88,16 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCo
 	if treeErr != nil {
 		return false, treeErr
 	}
-	diffOpts := &git.DiffOptions{
-		Flags:            git.DiffNormal,
-		IgnoreSubmodules: git.SubmoduleIgnoreNone,
-		Pathspec:         []string{s.conf.Path},
+	diffOpts, optsErr := git.DefaultDiffOptions()
+	if optsErr != nil {
+		return false, optsErr
 	}
 	var diff *git.Diff
 	var diffErr error
 	if *currBuildCommit == "" {
-		diff, diffErr = diffToWorkingDir(repo, prevTree, diffOpts)
+		diff, diffErr = diffToWorkingDir(repo, prevTree, &diffOpts)
 	} else {
-		diff, diffErr = diffToMostRecentCommit(repo, prevTree, diffOpts, *currBuildCommit)
+		diff, diffErr = diffToMostRecentCommit(repo, prevTree, &diffOpts, *currBuildCommit)
 	}
 	if diffErr != nil {
 		return false, diffErr
@@ -107,7 +106,8 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCo
 	if deltaErr != nil {
 		return false, deltaErr
 	}
-	if deltas > 0 {
+	log.Println("Num Deltas", deltas)
+	if deltas == 0 {
 		return false, nil
 	}
 	s.shouldBuild = true

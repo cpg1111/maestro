@@ -46,7 +46,7 @@ get-deps:
 	cd ${GOPATH} && \
 	go get -u github.com/kardianos/govendor && \
 	cd - && \
-	govendor sync	
+	govendor sync
 build:
 	govendor sync
 	go build --ldflags '-w' -o maestro github.com/cpg1111/maestro/
