@@ -14,10 +14,33 @@ limitations under the License.
 package util
 
 import (
+	"bytes"
 	"os/exec"
 	"os/user"
 	"strings"
+	"text/template"
 )
+
+// Commits is a struct for templating commits
+type Commits struct {
+	Prev string
+	Curr string
+}
+
+// TemplateCommits templates the commits hashes into commans
+func TemplateCommits(strCMD, lastCommit, currCommit string) (string, error) {
+	buff := &bytes.Buffer{}
+	commits := &Commits{Prev: lastCommit, Curr: currCommit}
+	tmpl, tmplErr := template.New("cmd").Parse(strCMD)
+	if tmplErr != nil {
+		return "", tmplErr
+	}
+	tmplExecErr := tmpl.Execute(buff, commits)
+	if tmplExecErr != nil {
+		return "", tmplExecErr
+	}
+	return buff.String(), nil
+}
 
 // FormatCommand formats a string to an exec'able command
 func FormatCommand(strCMD, path string) (*exec.Cmd, error) {
