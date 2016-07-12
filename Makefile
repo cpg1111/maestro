@@ -44,13 +44,11 @@ get-deps:
 	rm -rf libgit2-0.22.0
 	rm v0.22.0.tar.gz
 	cd ${GOPATH} && \
-	go get github.com/tools/godep && \
-	cd -
-	rm -rf ./Godeps/_workspace/
-	godep restore ./...
+	go get -u github.com/kardianos/govendor && \
+	cd - && \
+	govendor sync	
 build:
-	rm -rf ./Godeps/_workspace/
-	godep restore ./...
+	govendor sync
 	go build --ldflags '-w' -o maestro github.com/cpg1111/maestro/
 	$(LDD_CMD) ./maestro
 install:

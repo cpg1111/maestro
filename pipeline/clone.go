@@ -56,6 +56,7 @@ var (
 )
 
 func handleProgress(stats git.TransferProgress) git.ErrorCode {
+	log.Println("Cloning...")
 	if progbar == nil {
 		progbar = pb.StartNew((int)(stats.TotalObjects))
 	}
@@ -110,7 +111,7 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 
 // Clone clones a git repo
 func (p *Project) Clone() (resRepo *git.Repository, resErr error) {
-	log.Println("Cloning Repo...")
+	log.Println("Cloning Repo...", p.conf.RepoURL)
 	repoChan := make(chan *git.Repository)
 	errChan := make(chan error)
 	go func() {
@@ -126,9 +127,7 @@ func (p *Project) Clone() (resRepo *git.Repository, resErr error) {
 				return
 			}
 		case resErr = <-errChan:
-			if resErr != nil && doneMsg {
-				return
-			}
+			panic(resErr)
 		case doneMsg = <-done:
 			if resRepo != nil && doneMsg {
 				return

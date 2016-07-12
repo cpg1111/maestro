@@ -1,6 +1,16 @@
 FROM golang:1.6
 ADD . /go/src/github.com/cpg1111/maestro/
-RUN echo $PATH && apt-get update && apt-get install -y cmake build-essential pkgconf
+RUN apt-get update && apt-get install -qq -y cmake build-essential pkgconf pkg-config openssl libssl-dev libssh-dev zlib1g zlib1g-dev libffi-dev curl wget && \
+    wget https://openssl.org/source/openssl-1.0.2h.tar.gz && \
+    tar xzvf openssl-1.0.2h.tar.gz && \
+    cd openssl-1.0.2h && \
+    ./config --prefix=/usr \
+             --openssldir=/etc/ssl \
+             --libdir=lib \
+             shared \
+             zlib-dynamic && \
+    make depend && \
+    make && make install
 ENV PATH $PATH:$GOPATH/bin
 WORKDIR /go/src/github.com/cpg1111/maestro/
 ENTRYPOINT ["./build.sh"]
