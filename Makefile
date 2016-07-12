@@ -37,9 +37,8 @@ get-deps:
 	mkdir build && \
 	cd build && \
 	pwd && \
-	cmake .. && \
-	cmake --build . && \
-	make install && \
+	cmake .. -DCMAKE_INSTALL_PREFIX=/usr/ && \
+	cmake --build . --target install && \
 	cd -
 	rm -rf libgit2-0.22.0
 	rm v0.22.0.tar.gz
