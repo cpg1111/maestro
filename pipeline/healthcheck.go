@@ -28,7 +28,7 @@ import (
 )
 
 func healthcheckCMD(cmd, path string) error {
-	fmtCMD, fmtCMDErr := util.FormatCommand(cmd, path)
+	fmtCMD, fmtCMDErr := util.FmtCommand(cmd, path)
 	if fmtCMDErr != nil {
 		return fmtCMDErr
 	}
