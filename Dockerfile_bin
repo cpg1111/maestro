@@ -1,6 +1,5 @@
-FROM cpg1111/maestro:0.2.0
-RUN rm /bin/sh && ln -s /bin/bash /bin/sh
-RUN apt-get update --fix-missing && \
+FROM maestro_build
+RUN apt-get update -qq --fix-missing && \
     apt-get install -y apt-transport-https ca-certificates curl wget && \
     curl -L -o docker-1.9.1.tgz https://get.docker.com/builds/Linux/x86_64/docker-1.9.1.tgz && \
     tar xzvf docker-1.9.1.tgz -C / && \
