@@ -14,6 +14,7 @@ limitations under the License.
 package pipeline
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -36,10 +37,17 @@ type Service struct {
 	logFileOffset int64
 	lastCommit    string
 	currCommit    string
+	path          string
 }
 
 // NewService returns an instance of a pipeline service
 func NewService(srv config.Service, creds *credentials.RawCredentials, last, curr string) *Service {
+	var diffPath string
+	if srv.Path[len(srv.Path)-1] == '/' {
+		diffPath = fmt.Sprintf("%s*", srv.Path)
+	} else {
+		diffPath = fmt.Sprintf("%s/*", srv.Path)
+	}
 	return &Service{
 		conf:        srv,
 		State:       "Pending",
@@ -48,6 +56,7 @@ func NewService(srv config.Service, creds *credentials.RawCredentials, last, cur
 		shouldBuild: false,
 		lastCommit:  last,
 		currCommit:  curr,
+		path:        diffPath,
 	}
 }
 
@@ -92,6 +101,9 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCo
 	if optsErr != nil {
 		return false, optsErr
 	}
+	diffOpts.Pathspec = []string{s.path}
+	cw, cwErr := os.Getwd()
+	log.Println("CW", cw, cwErr, diffOpts.Pathspec[0])
 	var diff *git.Diff
 	var diffErr error
 	if *currBuildCommit == "" {

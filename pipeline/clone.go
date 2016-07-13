@@ -75,11 +75,17 @@ func handleProgress(stats git.TransferProgress) git.ErrorCode {
 
 // New returns a new instance of a pipeline project
 func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, branch, last, curr string) *Project {
+	var absPath string
+	cwd, cwdErr := os.Getwd()
+	if clonePath[0] == '.' {
+		absPath = fmt.Sprintf("%s/%s", cwd, clonePath)
+	} else {
+		absPath = clonePath
+	}
 	newServices := make(map[string]*Service)
 	for i := range conf.Services {
 		newServices[conf.Services[i].Name] = NewService(conf.Services[i], creds, last, curr)
 	}
-	cwd, cwdErr := os.Getwd()
 	if cwdErr != nil {
 		panic(cwdErr)
 	}
@@ -99,7 +105,7 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 	return &Project{
 		conf:      conf.Project,
 		State:     "Pending",
-		ABSPath:   fmt.Sprintf("%s/%s", cwd, clonePath),
+		ABSPath:   absPath,
 		Services:  newServices,
 		creds:     creds,
 		gitCreds:  &gitCreds,
@@ -123,12 +129,20 @@ func (p *Project) Clone() (resRepo *git.Repository, resErr error) {
 		select {
 		case resRepo = <-repoChan:
 			if resRepo != nil && doneMsg {
+				cdErr := os.Chdir(p.ABSPath)
+				if cdErr != nil {
+					log.Fatal(cdErr)
+				}
 				return
 			}
 		case resErr = <-errChan:
 			panic(resErr)
 		case doneMsg = <-done:
 			if resRepo != nil && doneMsg {
+				cdErr := os.Chdir(p.ABSPath)
+				if cdErr != nil {
+					log.Fatal(cdErr)
+				}
 				return
 			}
 		}
