@@ -30,14 +30,27 @@ else
 endif
 all: build
 get-deps:
-	curl -L https://github.com/libgit2/libgit2/archive/v0.22.0.tar.gz > v0.22.0.tar.gz
+	curl -L -o http-parser.tar.gz -z http-parser.tar.gz https://github.com/nodejs/http-parser/archive/v2.7.0.tar.gz && \
+	tar xzvf http-parser.tar.gz && \
+	cd http-parser-2.7.0 && \
+	PREFIX=/usr/ make package && PREFIX=/usr/ make install && ls /usr/include/ && ls /usr/lib/
+	curl -L -o libssh.tar.gz -z libssh.tar.gz https://www.libssh2.org/download/libssh2-1.4.2.tar.gz
+	tar xzvf libssh.tar.gz
+	cd libssh2-1.4.2 && \
+	./configure && \
+	make && make install
+	curl -L -o v0.22.0.tar.gz -z v0.22.0.tar.gz https://github.com/libgit2/libgit2/archive/v0.22.0.tar.gz
 	tar xzvf v0.22.0.tar.gz
 	cd libgit2-0.22.0 && \
 	pwd && \
 	mkdir build && \
 	cd build && \
 	pwd && \
-	cmake .. -DCMAKE_INSTALL_PREFIX=/usr/ && \
+	cmake .. \
+		-DCMAKE_INSTALL_PREFIX=/usr/ \
+		-DTHREADSAFE=ON \
+	    -DBUILD_CLAR=OFF \
+		&& \
 	cmake --build . --target install && \
 	cd -
 	rm -rf libgit2-0.22.0
@@ -48,7 +61,7 @@ get-deps:
 	govendor sync
 build:
 	govendor sync
-	go build --ldflags '-w' -o maestro github.com/cpg1111/maestro/
+	go build -linkshared -o maestro github.com/cpg1111/maestro/
 	$(LDD_CMD) ./maestro
 install:
 	cp ./maestro /usr/bin/maestro
