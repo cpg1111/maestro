@@ -31,8 +31,8 @@ type syncEnvJob struct {
 
 // Run runs the process and returns the child pid and/or error
 func (s *syncEnvJob) Run() (int, error) {
-    log.Println("Running ", s.cmd.Args)
-    s.cmd.Stderr = os.Stderr
+	log.Println("Running ", s.cmd.Args)
+	s.cmd.Stderr = os.Stderr
 	s.cmd.Stdout = os.Stdout
 	return s.cmd.Process.Pid, s.cmd.Run()
 }
@@ -43,7 +43,7 @@ type concurrentEnvJob struct {
 }
 
 func (c *concurrentEnvJob) Run(pid chan int, status chan error) {
-    log.Println("Running ", c.cmd.Args)
+	log.Println("Running ", c.cmd.Args)
 	c.cmd.Stderr = os.Stderr
 	c.cmd.Stdout = os.Stdout
 	err := c.cmd.Start()
@@ -100,10 +100,8 @@ func Load(conf *config.Environment) error {
 		}
 		count := 0
 		for {
-			log.Println("BLOCKING", count, len(conf.Exec))
 			select {
 			case msg := <-status:
-				log.Println(msg)
 				count++
 				if msg != nil {
 					log.Fatal(msg)

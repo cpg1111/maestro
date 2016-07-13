@@ -84,7 +84,7 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 	}
 	newServices := make(map[string]*Service)
 	for i := range conf.Services {
-		newServices[conf.Services[i].Name] = NewService(conf.Services[i], creds, last, curr)
+		newServices[conf.Services[i].Name] = NewService(conf.Services[i], creds, clonePath, last, curr)
 	}
 	if cwdErr != nil {
 		panic(cwdErr)
@@ -136,7 +136,9 @@ func (p *Project) Clone() (resRepo *git.Repository, resErr error) {
 				return
 			}
 		case resErr = <-errChan:
-			panic(resErr)
+			if resErr != nil {
+				panic(resErr)
+			}
 		case doneMsg = <-done:
 			if resRepo != nil && doneMsg {
 				cdErr := os.Chdir(p.ABSPath)

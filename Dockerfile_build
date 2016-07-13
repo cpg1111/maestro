@@ -1,6 +1,5 @@
 FROM golang:1.6
-ADD . /go/src/github.com/cpg1111/maestro/
-RUN apt-get update && apt-get install -qq -y cmake build-essential pkg-config openssl zlib1g curl wget && \
+RUN apt-get -qq update && apt-get install -y cmake build-essential pkg-config openssl zlib1g curl wget && \
     curl -o zlib-1.2.8.tar.gz -z zlib-1.2.8.tar.gz http://zlib.net/zlib-1.2.8.tar.gz && \
     tar xzvf zlib-1.2.8.tar.gz && \
     cd zlib-1.2.8 && \
@@ -15,9 +14,10 @@ RUN apt-get update && apt-get install -qq -y cmake build-essential pkg-config op
              shared \
              zlib-dynamic && \
     make depend && \
-    make && make install && \
-    cd /go/src/github.com/cpg1111/maestro/ && \
-    make get-deps && make && make install
+    make && make install
+ADD . /go/src/github.com/cpg1111/maestro/
+WORKDIR /go/src/github.com/cpg1111/maestro/
+RUN make get-deps && make && make install
 ENV PATH $PATH:$GOPATH/bin
 WORKDIR /go/src/github.com/cpg1111/maestro/
 ENTRYPOINT ["maestro"]

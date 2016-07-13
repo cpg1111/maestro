@@ -1,4 +1,4 @@
-FROM cpg1111/maestro:patch-2
+FROM cpg1111/maestro:0.2.0
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 RUN apt-get update --fix-missing && \
     apt-get install -y apt-transport-https ca-certificates curl wget && \
