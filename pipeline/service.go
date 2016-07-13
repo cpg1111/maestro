@@ -139,7 +139,7 @@ func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
 	if tmplErr != nil {
 		return nil, tmplErr
 	}
-	cmd, cmdErr := util.FormatCommand(cmdStr, path)
+	cmd, cmdErr := util.FmtCommand(cmdStr, path)
 	if cmdErr != nil {
 		return cmd, cmdErr
 	}
@@ -177,7 +177,7 @@ func (s *Service) execCheck() (bool, error) {
 	if tmplErr != nil {
 		return false, tmplErr
 	}
-	cmd, cmdErr := util.FormatCommand(cmdStr, s.conf.Path)
+	cmd, cmdErr := util.FmtCommand(cmdStr, s.conf.Path)
 	if cmdErr != nil {
 		return false, cmdErr
 	}

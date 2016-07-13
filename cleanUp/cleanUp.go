@@ -28,7 +28,7 @@ func handleCMDs(cmds []string) error {
 	}
 	if len(cmds) > 0 {
 		for i := range cmds {
-			cmd, cmdErr := util.FormatCommand(cmds[i], pwd)
+			cmd, cmdErr := util.FmtCommand(cmds[i], pwd)
 			if cmdErr != nil {
 				return cmdErr
 			}

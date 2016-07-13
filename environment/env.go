@@ -66,7 +66,7 @@ func newJob(cmdStr string, sync bool) envJob {
 	if pwdErr != nil {
 		panic(pwdErr)
 	}
-	cmd, cmdErr := util.FormatCommand(cmdStr, pwd)
+	cmd, cmdErr := util.FmtCommand(cmdStr, pwd)
 	if cmdErr != nil {
 		panic(cmdErr)
 	}
