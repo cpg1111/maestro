@@ -1,5 +1,5 @@
 FROM maestro_c
-ADD . /go/src/github.com/cpg1111/maestro/
+COPY . /go/src/github.com/cpg1111/maestro/
 WORKDIR /go/src/github.com/cpg1111/maestro/
 RUN make && make install
 ENV PATH $PATH:$GOPATH/bin

@@ -19,3 +19,12 @@ func FmtDiffPath(clonePath, srvPath string) (newStr string) {
 	}
 	return
 }
+
+func FmtClonePath(clonePath *string) *string {
+	clPath := *clonePath
+	if clPath[len(clPath)-1] == '/' {
+		clPath = clPath[0:(len(clPath) - 1)]
+		return &clPath
+	}
+	return clonePath
+}

@@ -52,10 +52,12 @@ func runServiceBuild(srvs map[string]*DepService, testAll, shouldDeploy *bool) e
 	errChan := make(chan error)
 	buildTotal := 0
 	for i := range srvs {
-		log.Println("building ", srvs[i].build.conf.Name)
 		if srvs[i].build.shouldBuild || *testAll {
 			buildTotal++
+			log.Println("building ", srvs[i].build.conf.Name)
 			go build(srvs[i], i, doneChan, errChan, shouldDeploy)
+		} else {
+			runServiceBuild(srvs[i].Children, testAll, shouldDeploy)
 		}
 	}
 	total := 0
@@ -81,25 +83,18 @@ func runServiceBuild(srvs map[string]*DepService, testAll, shouldDeploy *bool) e
 }
 
 // Run runs the build for all changed services
-func Run(depTrees []*DepTree, repo *git.Repository, lastBuildCommit, currBuildCommit *string, testAll, shouldDeploy *bool) error {
+func Run(depTree *DepTree, repo *git.Repository, lastBuildCommit, currBuildCommit *string, testAll, shouldDeploy *bool) error {
 	log.Println("run")
-	errChan := make(chan error)
-	for i := range depTrees {
-		currNode := depTrees[i].CurrNode
-		go func() {
-			travErr := TraverseTree(currNode, repo, lastBuildCommit, currBuildCommit)
-			if travErr != nil {
-				errChan <- travErr
-			}
-			rootMap := make(map[string]*DepService)
-			rootMap["root"] = currNode
-			err := runServiceBuild(rootMap, testAll, shouldDeploy)
-			if err != nil {
-				errChan <- err
-			} else {
-				errChan <- nil
-			}
-		}()
+	currNode := depTree.CurrNode
+	travErr := TraverseTree(currNode, repo, lastBuildCommit, currBuildCommit)
+	if travErr != nil {
+		return travErr
 	}
-	return <-errChan
+	rootMap := make(map[string]*DepService)
+	rootMap["root"] = currNode
+	err := runServiceBuild(rootMap, testAll, shouldDeploy)
+	if err != nil {
+		return err
+	}
+	return nil
 }

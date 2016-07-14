@@ -23,6 +23,7 @@ import (
 	"github.com/cpg1111/maestro/credentials"
 	"github.com/cpg1111/maestro/environment"
 	"github.com/cpg1111/maestro/pipeline"
+	"github.com/cpg1111/maestro/util"
 )
 
 var (
@@ -35,23 +36,33 @@ var (
 	deploy          = flag.Bool("deploy", false, "Whether or not to deploy this build")
 )
 
-func main() {
-	flag.Parse()
-	if *lastBuildCommit == "" {
-		log.Println("Maestro requires a previous commit to build from.")
-		os.Exit(1)
-	}
+func setEnv(conf *config.Config) {
 	os.Setenv("LAST_COMMIT", *lastBuildCommit)
 	if *currBuildCommit != "" {
 		os.Setenv("CURR_COMMIT", *currBuildCommit)
 	} else {
 		os.Setenv("CURR_COMMIT", "HEAD")
 	}
-	clPath := *clonePath
-	if clPath[len(clPath)-1] == '/' {
-		clPath = clPath[0:(len(clPath) - 1)]
-		clonePath = &clPath
+	if len(conf.Environment.Exec) > 0 || len(conf.Environment.ExecSync) > 0 {
+		log.Println("Loading Environment...")
+		envErr := environment.Load(&conf.Environment)
+		if envErr != nil {
+			log.Fatal(envErr)
+		}
 	}
+}
+
+func checkNoPrevCommit() {
+	if *lastBuildCommit == "" {
+		log.Println("Maestro requires a previous commit to build from.")
+		os.Exit(2)
+	}
+}
+
+func main() {
+	flag.Parse()
+	checkNoPrevCommit()
+	clonePath := util.FmtClonePath(clonePath)
 	log.Println("Loading Configuration...")
 	conf, confErr := config.Load(*confPath, *clonePath)
 	if confErr != nil {
@@ -62,13 +73,7 @@ func main() {
 	if credErr != nil {
 		log.Fatal(credErr)
 	}
-	if len(conf.Environment.Exec) > 0 || len(conf.Environment.ExecSync) > 0 {
-		log.Println("Loading Environment...")
-		envErr := environment.Load(&conf.Environment)
-		if envErr != nil {
-			log.Fatal(envErr)
-		}
-	}
+	setEnv(&conf)
 	log.Println("Creating Pipeline...")
 	pipe := pipeline.New(&conf, creds, *clonePath, *checkoutBranch, *lastBuildCommit, *currBuildCommit)
 	repo, cloneErr := pipe.Clone()
@@ -76,9 +81,9 @@ func main() {
 		log.Fatal(cloneErr)
 	}
 	log.Println("Building Dependency Tree...")
-	depTrees := pipeline.NewTreeList(pipe)
+	depTree := pipeline.NewTreeList(pipe)
 	log.Println("Building Serivces...")
-	buildErr := pipeline.Run(depTrees, repo, lastBuildCommit, currBuildCommit, testAll, deploy)
+	buildErr := pipeline.Run(depTree, repo, lastBuildCommit, currBuildCommit, testAll, deploy)
 	if buildErr != nil {
 		os.RemoveAll(*clonePath)
 		log.Fatal(buildErr)
