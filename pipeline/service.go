@@ -136,12 +136,15 @@ func (s *Service) getLogFile() (*os.File, error) {
 }
 
 func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
+	log.Println("executing", cmdStr)
 	cmdStr, tmplErr := util.TemplateCommits(cmdStr, s.lastCommit, s.currCommit)
 	if tmplErr != nil {
+		log.Println(tmplErr)
 		return nil, tmplErr
 	}
 	cmd, cmdErr := util.FmtCommand(cmdStr, path)
 	if cmdErr != nil {
+		log.Println(cmdErr)
 		return cmd, cmdErr
 	}
 	if s.conf.BuildLogFilePath != "" {
@@ -164,6 +167,7 @@ func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
 		cmd.Stderr = os.Stderr
 		runErr := cmd.Run()
 		if runErr != nil {
+			log.Println(runErr)
 			return cmd, runErr
 		}
 	}

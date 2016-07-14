@@ -27,12 +27,14 @@ func check(srv *Service) error {
 		log.Println("Found service,", srv.conf.Name, "updating now")
 		err := update(srv)
 		if err != nil {
+			log.Println(srv.conf.UpdateCMD, err)
 			return err
 		}
 	} else {
 		log.Println("Creating new service", srv.conf.Name)
 		err := create(srv)
 		if err != nil {
+			log.Println(srv.conf.CreateCMD, err)
 			return err
 		}
 	}
