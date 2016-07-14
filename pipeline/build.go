@@ -33,9 +33,11 @@ func build(srv *DepService, index string, done chan string, errChan chan error, 
 	}
 	log.Println("Tests done")
 	if !*shouldDeploy {
+		log.Println("No Deploy")
 		done <- index
 		return
 	}
+	log.Println("Checking deployment...")
 	err = check(srv.build)
 	if err != nil {
 		errChan <- err
@@ -74,6 +76,7 @@ func runServiceBuild(srvs map[string]*DepService, testAll, shouldDeploy *bool) e
 				}
 			case errMsg := <-errChan:
 				if errMsg != nil {
+					log.Println(errMsg)
 					return errMsg
 				}
 			}
