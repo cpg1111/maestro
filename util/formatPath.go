@@ -20,6 +20,7 @@ func FmtDiffPath(clonePath, srvPath string) (newStr string) {
 	return
 }
 
+// FmtClonePath formats clonePath to a uniform format regardless of input
 func FmtClonePath(clonePath *string) *string {
 	clPath := *clonePath
 	if clPath[len(clPath)-1] == '/' {

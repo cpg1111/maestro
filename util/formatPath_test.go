@@ -4,6 +4,7 @@ import (
 	"testing"
 )
 
+// TestFmtDiffPath tests FmtDiffPath
 func TestFmtDiffPath(t *testing.T) {
 	testVals := []string{
 		"/usr/lib",
@@ -19,6 +20,7 @@ func TestFmtDiffPath(t *testing.T) {
 	}
 }
 
+// TestFmtClonePath tests FmtDiffPath
 func TestFmtClonePath(t *testing.T) {
 	testPath1 := "/tmp/build/"
 	testPathPtr1 := &testPath1
