@@ -18,18 +18,19 @@ import (
 )
 
 func check(srv *Service) error {
+	log.Println("Checking whether to update or create", srv.conf.Name)
 	check, checkErr := srv.execCheck()
 	if checkErr != nil {
 		return checkErr
 	}
 	if check {
-		log.Println("Found service, updating now")
+		log.Println("Found service,", srv.conf.Name, "updating now")
 		err := update(srv)
 		if err != nil {
 			return err
 		}
 	} else {
-		log.Println("Creating new service")
+		log.Println("Creating new service", srv.conf.Name)
 		err := create(srv)
 		if err != nil {
 			return err
