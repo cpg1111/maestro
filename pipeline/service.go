@@ -79,7 +79,6 @@ func diffToMostRecentCommit(repo *git.Repository, prev *git.Tree, opts *git.Diff
 
 // ShouldBuild diffs a service's path and determs whether or not it needs to run the pipeline on it
 func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCommit *string) (bool, error) {
-	log.Println("diff")
 	prevCommitObject, parseErr := repo.RevparseSingle(*lastBuildCommit)
 	if parseErr != nil {
 		return false, parseErr
@@ -98,7 +97,6 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCo
 		return false, optsErr
 	}
 	diffOpts.Pathspec = []string{s.diffPath}
-	log.Println("CW", diffOpts.Pathspec[0])
 	var diff *git.Diff
 	var diffErr error
 	if *currBuildCommit == "" {
@@ -113,10 +111,10 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCo
 	if deltaErr != nil {
 		return false, deltaErr
 	}
-	log.Println("Num Deltas", deltas)
 	if deltas == 0 {
 		return false, nil
 	}
+	log.Println("Found", deltas, "in", s.conf.Name, "beginning build")
 	s.shouldBuild = true
 	return true, nil
 }

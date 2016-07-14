@@ -30,10 +30,27 @@ else
 endif
 all: build
 get-deps:
+	mkdir -p tmp && \
+	cd tmp && \
+	curl -o zlib-1.2.8.tar.gz -z zlib-1.2.8.tar.gz http://zlib.net/zlib-1.2.8.tar.gz && \
+    tar xzvf zlib-1.2.8.tar.gz && \
+    cd zlib-1.2.8 && \
+    ./configure && \
+    make && make install && \
+    curl -o openssl-1.0.2h.tar.gz -z openssl-1.0.2h.tar.gz https://openssl.org/source/openssl-1.0.2h.tar.gz && \
+    tar xzvf openssl-1.0.2h.tar.gz && \
+    cd openssl-1.0.2h && \
+    ./config --prefix=/usr \
+             --openssldir=/etc/ssl \
+             --libdir=lib \
+             shared \
+             zlib-dynamic && \
+    make depend && \
+    make && make install && \
 	curl -L -o http-parser.tar.gz -z http-parser.tar.gz https://github.com/nodejs/http-parser/archive/v2.7.0.tar.gz && \
 	tar xzvf http-parser.tar.gz && \
 	cd http-parser-2.7.0 && \
-	PREFIX=/usr/ make package && PREFIX=/usr/ make install && ls /usr/include/ && ls /usr/lib/
+	PREFIX=/usr make package && PREFIX=/usr/ make install && ls /usr/include/ && ls /usr/lib/
 	curl -L -o libssh.tar.gz -z libssh.tar.gz https://www.libssh2.org/download/libssh2-1.4.2.tar.gz
 	tar xzvf libssh.tar.gz
 	cd libssh2-1.4.2 && \
@@ -59,6 +76,7 @@ get-deps:
 	go get -u github.com/kardianos/govendor && \
 	cd - && \
 	govendor sync
+	rm -rf tmp
 build:
 	govendor sync
 	go build -linkshared -o maestro github.com/cpg1111/maestro/
