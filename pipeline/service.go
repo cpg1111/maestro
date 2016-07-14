@@ -79,6 +79,9 @@ func diffToMostRecentCommit(repo *git.Repository, prev *git.Tree, opts *git.Diff
 
 // ShouldBuild diffs a service's path and determs whether or not it needs to run the pipeline on it
 func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCommit *string) (bool, error) {
+	if s.shouldBuild {
+		return s.shouldBuild, nil
+	}
 	prevCommitObject, parseErr := repo.RevparseSingle(*lastBuildCommit)
 	if parseErr != nil {
 		return false, parseErr
