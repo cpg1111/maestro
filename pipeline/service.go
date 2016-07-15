@@ -14,6 +14,7 @@ limitations under the License.
 package pipeline
 
 import (
+	"bufio"
 	"log"
 	"os"
 	"os/exec"
@@ -135,6 +136,27 @@ func (s *Service) getLogFile() (*os.File, error) {
 	return os.Create(s.conf.BuildLogFilePath)
 }
 
+func (s *Service) logStdoutToFile(cmd *exec.Cmd) error {
+	stdout, outErr := cmd.StdoutPipe()
+	if outErr != nil {
+		return outErr
+	}
+	stdoutFile, fileErr := s.getLogFile()
+	if fileErr != nil {
+		return fileErr
+	}
+	logger := log.New(stdoutFile, "STDOUT: ", log.LstdFlags)
+	in := bufio.NewScanner(stdout)
+	for in.Scan() {
+		logger.Printf(in.Text())
+	}
+	inErr := in.Err()
+	if inErr != nil {
+		return inErr
+	}
+	return nil
+}
+
 func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
 	log.Println("executing", cmdStr)
 	cmdStr, tmplErr := util.TemplateCommits(cmdStr, s.lastCommit, s.currCommit)
@@ -148,20 +170,10 @@ func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
 		return cmd, cmdErr
 	}
 	if s.conf.BuildLogFilePath != "" {
-		logFile, openErr := s.getLogFile()
-		if openErr != nil {
-			return cmd, openErr
+		stdoutErr := s.logStdoutToFile(cmd)
+		if stdoutErr != nil {
+			return cmd, stdoutErr
 		}
-		log.Println(logFile)
-		output, outputErr := cmd.Output()
-		offset, writeErr := logFile.WriteAt(output, s.logFileOffset)
-		if outputErr != nil {
-			return cmd, outputErr
-		}
-		if writeErr != nil {
-			return cmd, writeErr
-		}
-		s.logFileOffset = (int64)(offset)
 	} else {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
