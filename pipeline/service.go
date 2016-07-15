@@ -147,9 +147,12 @@ func (s *Service) logStdoutToFile(cmd *exec.Cmd) error {
 	}
 	logger := log.New(stdoutFile, "STDOUT: ", log.LstdFlags)
 	in := bufio.NewScanner(stdout)
-	for in.Scan() {
-		logger.Printf(in.Text())
-	}
+	go func() {
+		for in.Scan() {
+			log.Println(in.Text())
+			logger.Printf(in.Text())
+		}
+	}()
 	inErr := in.Err()
 	if inErr != nil {
 		return inErr
