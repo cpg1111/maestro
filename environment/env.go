@@ -31,9 +31,7 @@ type syncEnvJob struct {
 
 // Run runs the process and returns the child pid and/or error
 func (s *syncEnvJob) Run() (int, error) {
-	log.Println("Running ", s.cmd.Args)
-	s.cmd.Stderr = os.Stderr
-	s.cmd.Stdout = os.Stdout
+	log.Println("Running", s.cmd.Args)
 	return s.cmd.Process.Pid, s.cmd.Run()
 }
 
@@ -43,9 +41,7 @@ type concurrentEnvJob struct {
 }
 
 func (c *concurrentEnvJob) Run(pid chan int, status chan error) {
-	log.Println("Running ", c.cmd.Args)
-	c.cmd.Stderr = os.Stderr
-	c.cmd.Stdout = os.Stdout
+	log.Println("Running", c.cmd.Args)
 	err := c.cmd.Start()
 	if err != nil {
 		status <- err

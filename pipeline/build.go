@@ -49,14 +49,13 @@ func build(srv *DepService, index string, done chan string, errChan chan error, 
 }
 
 func runServiceBuild(srvs map[string]*DepService, testAll, shouldDeploy *bool) error {
-	log.Println("building services")
 	doneChan := make(chan string)
 	errChan := make(chan error)
 	buildTotal := 0
 	for i := range srvs {
 		if srvs[i].build.shouldBuild || *testAll {
 			buildTotal++
-			log.Println("building ", srvs[i].build.conf.Name)
+			log.Println("Building", srvs[i].build.conf.Name)
 			go build(srvs[i], i, doneChan, errChan, shouldDeploy)
 		} else {
 			runServiceBuild(srvs[i].Children, testAll, shouldDeploy)
@@ -87,7 +86,6 @@ func runServiceBuild(srvs map[string]*DepService, testAll, shouldDeploy *bool) e
 
 // Run runs the build for all changed services
 func Run(depTree *DepTree, repo *git.Repository, lastBuildCommit, currBuildCommit *string, testAll, shouldDeploy *bool) error {
-	log.Println("run")
 	currNode := depTree.CurrNode
 	travErr := TraverseTree(currNode, repo, lastBuildCommit, currBuildCommit)
 	if travErr != nil {
