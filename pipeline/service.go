@@ -146,7 +146,7 @@ func (s *Service) logToFile(stream string, in *bufio.Scanner) {
 		panic(syncErr)
 	}
 	inErr := in.Err()
-	if inErr != nil {
+	if inErr != nil && inErr.Error() != "read |0: bad file descriptor" {
 		panic(inErr)
 	}
 }
