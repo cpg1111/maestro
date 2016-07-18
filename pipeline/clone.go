@@ -116,7 +116,7 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 
 // Clone clones a git repo
 func (p *Project) Clone() (resRepo *git.Repository, resErr error) {
-	log.Println("Cloning Repo...", p.conf.RepoURL)
+	log.Println("Cloning Repo...")
 	repoChan := make(chan *git.Repository)
 	errChan := make(chan error)
 	go func() {

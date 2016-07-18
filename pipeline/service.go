@@ -14,10 +14,12 @@ limitations under the License.
 package pipeline
 
 import (
+	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
-	"syscall"
+	"time"
 
 	"github.com/cpg1111/maestro/config"
 	"github.com/cpg1111/maestro/credentials"
@@ -117,51 +119,90 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCo
 	if deltas == 0 {
 		return false, nil
 	}
-	log.Println("Found", deltas, "in", s.conf.Name, "beginning build")
+	log.Println("Found", deltas, "deltas in", s.conf.Name, "beginning build")
 	s.shouldBuild = true
 	return true, nil
 }
 
 func (s *Service) getLogFile() (*os.File, error) {
-	stat := &syscall.Stat_t{}
-	statErr := syscall.Stat(s.conf.BuildLogFilePath, stat)
-	falseErrStr := "no such file or directory"
-	if statErr != nil && statErr.Error() != falseErrStr {
-		return nil, statErr
+	return os.OpenFile(s.conf.BuildLogFilePath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+}
+
+func logToFile(in *bufio.Scanner, out *os.File, errChan chan error) {
+	for in.Scan() {
+		text := fmt.Sprintf("%s STDOUT: %s\n", time.Now(), in.Text())
+		log.Println("writing ", text)
+		fd, writeErr := out.WriteString(text)
+		log.Println(fd)
+		if writeErr != nil {
+			panic(writeErr)
+		}
 	}
-	if stat.Size > 0 {
-		return os.Open(s.conf.BuildLogFilePath)
+}
+
+func (s *Service) logStdoutToFile(cmd *exec.Cmd) error {
+	stdout, outErr := cmd.StdoutPipe()
+	if outErr != nil {
+		return outErr
 	}
-	return os.Create(s.conf.BuildLogFilePath)
+	stderr, errErr := cmd.StderrPipe()
+	if errErr != nil {
+		return errErr
+	}
+	in1 := bufio.NewScanner(stdout)
+	in2 := bufio.NewScanner(stderr)
+	logFile, fileErr := s.getLogFile()
+	if fileErr != nil {
+		log.Fatal("fileErr: ", fileErr)
+		panic(fileErr)
+	}
+	defer logFile.Close()
+	errChan := make(chan error)
+	go logToFile(in1, logFile, errChan)
+	go logToFile(in2, logFile, errChan)
+	writeErr := <-errChan
+	if writeErr != nil {
+		return writeErr
+	}
+	syncErr := logFile.Sync()
+	if syncErr != nil {
+		panic(syncErr)
+	}
+	in1Err := in1.Err()
+	if in1Err != nil {
+		log.Println(in1Err)
+		return in1Err
+	}
+	in2Err := in2.Err()
+	if in2 != nil {
+		log.Println(in2Err)
+		return in2Err
+	}
+	return nil
 }
 
 func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
-	log.Println("executing", cmdStr)
 	cmdStr, tmplErr := util.TemplateCommits(cmdStr, s.lastCommit, s.currCommit)
 	if tmplErr != nil {
 		log.Println(tmplErr)
 		return nil, tmplErr
 	}
+	log.Println("executing", cmdStr)
 	cmd, cmdErr := util.FmtCommand(cmdStr, path)
 	if cmdErr != nil {
 		log.Println(cmdErr)
 		return cmd, cmdErr
 	}
 	if s.conf.BuildLogFilePath != "" {
-		logFile, openErr := s.getLogFile()
-		if openErr != nil {
-			return cmd, openErr
+		stdoutErr := s.logStdoutToFile(cmd)
+		if stdoutErr != nil {
+			return cmd, stdoutErr
 		}
-		log.Println(logFile)
-		output, outputErr := cmd.Output()
-		offset, writeErr := logFile.WriteAt(output, s.logFileOffset)
-		if outputErr != nil {
-			return cmd, outputErr
+		runErr := cmd.Run()
+		if runErr != nil {
+			log.Println(runErr)
+			return cmd, runErr
 		}
-		if writeErr != nil {
-			return cmd, writeErr
-		}
-		s.logFileOffset = (int64)(offset)
 	} else {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
