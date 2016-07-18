@@ -160,9 +160,17 @@ func (s *Service) logStdoutToFile(cmd *exec.Cmd) error {
 	errChan := make(chan error)
 	go logToFile(in1, logFile, errChan)
 	go logToFile(in2, logFile, errChan)
-	writeErr := <-errChan
-	if writeErr != nil {
-		return writeErr
+	errCount := 0
+	for {
+		select {
+		case err := <-errChan:
+			errCount++
+			if err != nil {
+				return err
+			} else if errCount == 2 {
+				break
+			}
+		}
 	}
 	syncErr := logFile.Sync()
 	if syncErr != nil {
