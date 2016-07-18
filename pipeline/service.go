@@ -135,7 +135,7 @@ func logToFile(in *bufio.Scanner, out *os.File, errChan chan error) {
 		fd, writeErr := out.WriteString(text)
 		log.Println(fd)
 		if writeErr != nil {
-			panic(writeErr)
+			errChan <- writeErr
 		}
 	}
 }
