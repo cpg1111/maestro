@@ -30,7 +30,6 @@ func TraverseTree(depSrv *DepService, repo *git.Repository, lastBuildCommit, cur
 	if depSrv == nil {
 		return errors.New("Service is nil in tree")
 	}
-	log.Println("Traversed to", depSrv.build.conf.Name)
 	shouldBuild, buildErr := depSrv.build.ShouldBuild(repo, lastBuildCommit, currBuildCommit)
 	if buildErr != nil {
 		return buildErr
@@ -64,7 +63,6 @@ func dependsOnChild(child, parent *DepService) int {
 func getDependencies(depSrv *DepService, tree *DepTree, created map[string]*DepService, proj *Project) {
 	for j := range depSrv.build.conf.DependsOn {
 		if created[depSrv.build.conf.DependsOn[j]] != nil {
-			log.Println(depSrv.build.conf.DependsOn[j], "is already created dep")
 			youngerParentIndex := dependsOnChild(depSrv, created[depSrv.build.conf.DependsOn[j]])
 			if youngerParentIndex > -1 {
 				depSrv.Parent = created[depSrv.build.conf.DependsOn[j]].Children[depSrv.build.conf.DependsOn[youngerParentIndex]]
