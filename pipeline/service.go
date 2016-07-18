@@ -128,15 +128,26 @@ func (s *Service) getLogFile() (*os.File, error) {
 	return os.OpenFile(s.conf.BuildLogFilePath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 }
 
-func logToFile(in *bufio.Scanner, out *os.File, errChan chan error) {
+func (s *Service) logToFile(stream string, in *bufio.Scanner) {
+	out, fileErr := s.getLogFile()
+	if fileErr != nil {
+		panic(fileErr)
+	}
+	defer out.Close()
 	for in.Scan() {
-		text := fmt.Sprintf("%s STDOUT: %s\n", time.Now(), in.Text())
-		log.Println("writing ", text)
-		fd, writeErr := out.WriteString(text)
-		log.Println(fd)
+		text := fmt.Sprintf("%s %s: %s\n", time.Now(), stream, in.Text())
+		_, writeErr := out.WriteString(text)
 		if writeErr != nil {
-			errChan <- writeErr
+			panic(writeErr)
 		}
+	}
+	syncErr := out.Sync()
+	if syncErr != nil {
+		panic(syncErr)
+	}
+	inErr := in.Err()
+	if inErr != nil {
+		panic(inErr)
 	}
 }
 
@@ -151,41 +162,8 @@ func (s *Service) logStdoutToFile(cmd *exec.Cmd) error {
 	}
 	in1 := bufio.NewScanner(stdout)
 	in2 := bufio.NewScanner(stderr)
-	logFile, fileErr := s.getLogFile()
-	if fileErr != nil {
-		log.Fatal("fileErr: ", fileErr)
-		panic(fileErr)
-	}
-	defer logFile.Close()
-	errChan := make(chan error)
-	go logToFile(in1, logFile, errChan)
-	go logToFile(in2, logFile, errChan)
-	errCount := 0
-	for {
-		select {
-		case err := <-errChan:
-			errCount++
-			if err != nil {
-				return err
-			} else if errCount == 2 {
-				break
-			}
-		}
-	}
-	syncErr := logFile.Sync()
-	if syncErr != nil {
-		panic(syncErr)
-	}
-	in1Err := in1.Err()
-	if in1Err != nil {
-		log.Println(in1Err)
-		return in1Err
-	}
-	in2Err := in2.Err()
-	if in2 != nil {
-		log.Println(in2Err)
-		return in2Err
-	}
+	go s.logToFile("STDOUT", in1)
+	go s.logToFile("STDERR", in2)
 	return nil
 }
 
@@ -195,7 +173,7 @@ func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
 		log.Println(tmplErr)
 		return nil, tmplErr
 	}
-	log.Println("executing", cmdStr)
+	log.Printf("Running [%s]\n", cmdStr)
 	cmd, cmdErr := util.FmtCommand(cmdStr, path)
 	if cmdErr != nil {
 		log.Println(cmdErr)

@@ -96,10 +96,9 @@ func getDependencies(depSrv *DepService, tree *DepTree, created map[string]*DepS
 // NewTreeList returns a list of dependency trees
 func NewTreeList(proj *Project) (newTree *DepTree) {
 	created := make(map[string]*DepService)
-	log.Println("Creating a dependency tree")
 	newTree = &DepTree{CurrNode: nil}
 	for i := range proj.Services {
-		log.Println("Finding a spot in the tree for ", proj.Services[i].conf.Name)
+		log.Println("Finding a spot in the tree for", proj.Services[i].conf.Name)
 		if created[proj.Services[i].conf.Name] != nil {
 			continue
 		}
