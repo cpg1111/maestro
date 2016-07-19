@@ -48,21 +48,28 @@ or
 
 then
 
-dynamically linked
+```
+    docker build -t maestro_c -f Dockerfile_c .
+    docker build -t maestro_build -f Dockerfile_build .
+```
+
+then either:
 
 ```
-    sudo make get-deps # requires libgit2, so get-deps downloads, builds and installs libgit2
-    make
-    sudo make install
+    docker build -t maestro .
 ```
 
 or
 
-statically linked
+```
+    docker build -t maestro_bin_deps -f Dockerfile_bin .
+    docker build -t maestro -f Dockerfile_fully_loaded . # gives you certain common executables for building, testing and deploying
+```
+
+## Test
 
 ```
-    ./build.sh
-    sudo cp ./dist/maestro <some dir in PATH>
+    go test ./...
 ```
 
 ## Run

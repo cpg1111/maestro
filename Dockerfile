@@ -1,3 +1,2 @@
-FROM debian:jessie
-ADD ./dist/maestro /usr/bin/maestro
+FROM maestro_build
 ENTRYPOINT ["/usr/bin/maestro"]
