@@ -174,7 +174,7 @@ or
 ## Roadmap
 
 - Pipeline tests
-- Option and flag for running all services' tests
+- Allow larger log buffers
 - More possible dependency structures
 - Maestrod integration on clean up
 
