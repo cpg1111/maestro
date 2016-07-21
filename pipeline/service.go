@@ -63,16 +63,7 @@ func diffToWorkingDir(repo *git.Repository, prev *git.Tree, opts *git.DiffOption
 }
 
 func diffToMostRecentCommit(repo *git.Repository, prev *git.Tree, opts *git.DiffOptions, currCommit string) (*git.Diff, error) {
-	currCommitObject, parseErr := repo.RevparseSingle(currCommit)
-	if parseErr != nil {
-		return nil, parseErr
-	}
-	currCommitID := currCommitObject.Id()
-	currCommitRef, lookupErr := repo.LookupCommit(currCommitID)
-	if lookupErr != nil {
-		return nil, lookupErr
-	}
-	currTree, treeErr := currCommitRef.Tree()
+	currTree, treeErr := util.CommitToTree(repo, currCommit)
 	if treeErr != nil {
 		return nil, treeErr
 	}
@@ -84,16 +75,7 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCo
 	if s.shouldBuild {
 		return s.shouldBuild, nil
 	}
-	prevCommitObject, parseErr := repo.RevparseSingle(*lastBuildCommit)
-	if parseErr != nil {
-		return false, parseErr
-	}
-	prevCommitID := prevCommitObject.Id()
-	prevCommit, lookupErr := repo.LookupCommit(prevCommitID)
-	if lookupErr != nil {
-		return false, lookupErr
-	}
-	prevTree, treeErr := prevCommit.Tree()
+	prevTree, treeErr := util.CommitToTree(repo, *lastBuildCommit)
 	if treeErr != nil {
 		return false, treeErr
 	}

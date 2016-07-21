@@ -80,6 +80,10 @@ func main() {
 	if cloneErr != nil {
 		log.Fatal(cloneErr)
 	}
+	if *currBuildCommit != "" {
+		log.Println("Checking out current commit...")
+		pipe.Checkout(repo, *currBuildCommit)
+	}
 	log.Println("Building Dependency Tree...")
 	depTree := pipeline.NewTreeList(pipe)
 	log.Println("Building Serivces...")
