@@ -21,6 +21,7 @@ import (
 
 	"github.com/cpg1111/maestro/config"
 	"github.com/cpg1111/maestro/credentials"
+	"github.com/cpg1111/maestro/util"
 
 	pb "gopkg.in/cheggaaa/pb.v1"
 	git "gopkg.in/libgit2/git2go.v22"
@@ -149,4 +150,13 @@ func (p *Project) Clone() (resRepo *git.Repository, resErr error) {
 			}
 		}
 	}
+}
+
+func (p *Project) Checkout(repo *git.Repository, commit string) error {
+	tree, treeErr := util.CommitToTree(repo, commit)
+	if treeErr != nil {
+		return treeErr
+	}
+	opts := &git.CheckoutOpts{}
+	return repo.CheckoutTree(tree, opts)
 }
