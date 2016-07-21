@@ -25,11 +25,11 @@ func TestFmtCommand(t *testing.T) {
 	if pathErr != nil {
 		t.Error(pathErr)
 	}
-	cmd, err := FmtCommand("bash -c 'echo \"hello world ./\"'", path)
+	cmd, err := FmtCommand("bash -c 'NODE_ENV=production gulp --gulpfile=./client/js/gulpfile.js scripts'", path)
 	if err != nil {
 		t.Error(err)
 	}
-	expected := []string{"/bin/bash", "-c", fmt.Sprintf("'echo \"hello world %s/\"'", path)}
+	expected := []string{BASH, "-c", fmt.Sprintf("'NODE_ENV=production gulp --gulpfile=%s/client/js/gulpfile.js scripts'", path)}
 	for i := range cmd.Args {
 		if strings.Compare(cmd.Args[i], expected[i]) != 0 {
 			t.Errorf("expected %s, found %s", expected[i], cmd.Args[i])

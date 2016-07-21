@@ -107,7 +107,7 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCo
 }
 
 func (s *Service) getLogFile() (*os.File, error) {
-	return os.OpenFile(s.conf.BuildLogFilePath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	return os.OpenFile(s.conf.BuildLogFilePath, os.O_CREATE|os.O_WRONLY, 0664)
 }
 
 func (s *Service) logToFile(stream string, in *bufio.Scanner) {
@@ -155,12 +155,12 @@ func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
 		log.Println(tmplErr)
 		return nil, tmplErr
 	}
-	log.Printf("Running [%s]\n", cmdStr)
 	cmd, cmdErr := util.FmtCommand(cmdStr, path)
 	if cmdErr != nil {
 		log.Println(cmdErr)
 		return cmd, cmdErr
 	}
+	log.Printf("Running %v\n", cmd.Args)
 	if s.conf.BuildLogFilePath != "" {
 		stdoutErr := s.logStdoutToFile(cmd)
 		if stdoutErr != nil {
