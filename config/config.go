@@ -59,6 +59,7 @@ type Project struct {
 
 // Environment is the config for the environment
 type Environment struct {
+	Env      []string
 	ExecSync []string
 	Exec     []string
 }

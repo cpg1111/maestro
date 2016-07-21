@@ -17,6 +17,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/cpg1111/maestro/config"
 	"github.com/cpg1111/maestro/util"
@@ -78,6 +79,13 @@ func newJob(cmdStr string, sync bool) envJob {
 
 // Load takes an environment config and loads the environment
 func Load(conf *config.Environment) error {
+	if len(conf.Env) > 0 {
+		for h := range conf.Env {
+			kv := strings.Split(conf.Env[h], ":")
+			key := strings.ToUpper(kv[0])
+			os.Setenv(key, kv[1])
+		}
+	}
 	if len(conf.ExecSync) > 0 {
 		for i := range conf.ExecSync {
 			job := newJob(conf.ExecSync[i], true).(syncEnvJob)
