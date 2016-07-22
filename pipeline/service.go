@@ -207,7 +207,9 @@ func (s *Service) execCheck() (bool, error) {
 func (s *Service) execBuild() error {
 	for i := range s.conf.BuildCMD {
 		_, err := s.execSrvCmd(s.conf.BuildCMD[i], s.conf.Path)
-		return err
+		if err != nil {
+			return err
+		}
 	}
 	log.Println("Built")
 	return nil
@@ -217,7 +219,9 @@ func (s *Service) execTests() error {
 	log.Println("Testing")
 	for i := range s.conf.TestCMD {
 		_, err := s.execSrvCmd(s.conf.TestCMD[i], s.conf.Path)
-		return err
+		if err != nil {
+			return err
+		}
 	}
 	log.Println("Tested")
 	return nil
