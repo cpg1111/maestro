@@ -36,11 +36,11 @@ type Service struct {
 	TagType          string
 	Path             string
 	BuildLogFilePath string
-	BuildCMD         string
-	TestCMD          string
-	CheckCMD         string
-	CreateCMD        string
-	UpdateCMD        string
+	BuildCMD         []string
+	TestCMD          []string
+	CheckCMD         []string
+	CreateCMD        []string
+	UpdateCMD        []string
 	HealthCheck      HealthCheck `toml:"[Services.HealthCheck]"`
 	DependsOn        []string
 }

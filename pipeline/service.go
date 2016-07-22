@@ -184,65 +184,77 @@ func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
 }
 
 func (s *Service) execCheck() (bool, error) {
-	if s.conf.CheckCMD == "" {
+	if len(s.conf.CheckCMD) == 0 {
 		return true, nil
 	}
-	cmdStr, tmplErr := util.TemplateCommits(s.conf.CheckCMD, s.lastCommit, s.currCommit)
-	if tmplErr != nil {
-		return false, tmplErr
-	}
-	cmd, cmdErr := util.FmtCommand(cmdStr, s.conf.Path)
-	if cmdErr != nil {
-		return false, cmdErr
-	}
-	checkErr := cmd.Run()
-	if checkErr != nil {
-		return false, checkErr
+	for i := range s.conf.CheckCMD {
+		cmdStr, tmplErr := util.TemplateCommits(s.conf.CheckCMD[i], s.lastCommit, s.currCommit)
+		if tmplErr != nil {
+			return false, tmplErr
+		}
+		cmd, cmdErr := util.FmtCommand(cmdStr, s.conf.Path)
+		if cmdErr != nil {
+			return false, cmdErr
+		}
+		checkErr := cmd.Run()
+		if checkErr != nil {
+			return false, checkErr
+		}
 	}
 	return true, nil
 }
 
 func (s *Service) execBuild() error {
-	_, err := s.execSrvCmd(s.conf.BuildCMD, s.conf.Path)
+	for i := range s.conf.BuildCMD {
+		_, err := s.execSrvCmd(s.conf.BuildCMD[i], s.conf.Path)
+		return err
+	}
 	log.Println("Built")
-	return err
+	return nil
 }
 
 func (s *Service) execTests() error {
 	log.Println("Testing")
-	_, err := s.execSrvCmd(s.conf.TestCMD, s.conf.Path)
+	for i := range s.conf.TestCMD {
+		_, err := s.execSrvCmd(s.conf.TestCMD[i], s.conf.Path)
+		return err
+	}
 	log.Println("Tested")
-	return err
+	return nil
 }
 
 func (s *Service) execCreate() error {
-	if s.conf.CreateCMD == "" {
+	if len(s.conf.CreateCMD) == 0 {
 		return nil
 	}
-	cmd, err := s.execSrvCmd(s.conf.CreateCMD, s.conf.Path)
-	if err != nil {
-		return err
-	}
-	if s.conf.HealthCheck.Type == "PTRACE_ATTACH" {
-		passPid := HealthCheck(&s.conf).(func(pid int) error)
-		return passPid(cmd.Process.Pid).(error)
+	for i := range s.conf.CreateCMD {
+		cmd, err := s.execSrvCmd(s.conf.CreateCMD[i], s.conf.Path)
+		if err != nil {
+			return err
+		}
+		if s.conf.HealthCheck.Type == "PTRACE_ATTACH" {
+			passPid := HealthCheck(&s.conf).(func(pid int) error)
+			return passPid(cmd.Process.Pid).(error)
+		}
 	}
 	return HealthCheck(&s.conf).(error)
 }
 
 func (s *Service) execUpdate() error {
-	if s.conf.UpdateCMD == "" {
+	if len(s.conf.UpdateCMD) == 0 {
 		return nil
 	}
-	cmd, err := s.execSrvCmd(s.conf.UpdateCMD, s.conf.Path)
-	if err != nil {
-		return err
-	}
-	if s.conf.HealthCheck.Type == "PTRACE_ATTACH" {
-		passPid := HealthCheck(&s.conf).(func(pid int) error)
-		passed := passPid(cmd.Process.Pid)
-		if passed != nil {
-			return passed.(error)
+	for i := range s.conf.UpdateCMD {
+		cmd, err := s.execSrvCmd(s.conf.UpdateCMD[i], s.conf.Path)
+		if err != nil {
+			return err
+		}
+		if s.conf.HealthCheck.Type == "PTRACE_ATTACH" {
+			passPid := HealthCheck(&s.conf).(func(pid int) error)
+			passed := passPid(cmd.Process.Pid)
+			if passed != nil {
+				return passed.(error)
+			}
 		}
 	}
 	checkRes := HealthCheck(&s.conf)
