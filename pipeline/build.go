@@ -58,7 +58,10 @@ func runServiceBuild(srvs map[string]*DepService, testAll, shouldDeploy *bool) e
 			log.Println("Building", srvs[i].build.conf.Name)
 			go build(srvs[i], i, doneChan, errChan, shouldDeploy)
 		} else {
-			runServiceBuild(srvs[i].Children, testAll, shouldDeploy)
+			runErr := runServiceBuild(srvs[i].Children, testAll, shouldDeploy)
+			if runErr != nil {
+				return runErr
+			}
 		}
 	}
 	total := 0
@@ -68,7 +71,10 @@ func runServiceBuild(srvs map[string]*DepService, testAll, shouldDeploy *bool) e
 			case index := <-doneChan:
 				total++
 				if len(srvs[index].Children) > 0 {
-					runServiceBuild(srvs[index].Children, testAll, shouldDeploy)
+					runErr := runServiceBuild(srvs[index].Children, testAll, shouldDeploy)
+					if runErr != nil {
+						return runErr
+					}
 				}
 				if total == buildTotal {
 					return nil
