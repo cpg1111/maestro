@@ -68,9 +68,13 @@ func handleProgress(stats git.TransferProgress) git.ErrorCode {
 	if (int)(received) == (int)(stats.TotalObjects) && !hasFinished {
 		hasFinished = true
 		time.Sleep(time.Second)
-		done <- true
 		return git.ErrOk
 	}
+	return git.ErrOk
+}
+
+func handleComplete(complete git.RemoteCompletion) git.ErrorCode {
+	done <- true
 	return git.ErrOk
 }
 
@@ -96,6 +100,7 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 			CredentialsCallback:      credCB(&gitCreds),
 			CertificateCheckCallback: certCheckCB,
 			TransferProgressCallback: handleProgress,
+			CompletionCallback:       handleComplete,
 		},
 	}
 	cloneOpts := &git.CloneOptions{
