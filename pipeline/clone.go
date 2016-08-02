@@ -91,14 +91,17 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 		panic(cwdErr)
 	}
 	gitCreds := creds.ToGitCredentials()
-	cloneOpts := &git.CloneOptions{
-		RemoteCallbacks: &git.RemoteCallbacks{
+	fetchOpts := &git.FetchOptions{
+		RemoteCallbacks: git.RemoteCallbacks{
 			CredentialsCallback:      credCB(&gitCreds),
 			CertificateCheckCallback: certCheckCB,
 			TransferProgressCallback: handleProgress,
 		},
+	}
+	cloneOpts := &git.CloneOptions{
+		FetchOptions: fetchOpts,
 		CheckoutOpts: &git.CheckoutOpts{
-			Strategy: git.CheckoutSafeCreate,
+			Strategy: git.CheckoutSafe,
 		},
 		Bare:           false,
 		CheckoutBranch: branch,
@@ -152,6 +155,7 @@ func (p *Project) Clone() (resRepo *git.Repository, resErr error) {
 	}
 }
 
+// Checkout checks out the repo to the current commit or HEAD of the branch
 func (p *Project) Checkout(repo *git.Repository, commit string) error {
 	tree, treeErr := util.CommitToTree(repo, commit)
 	if treeErr != nil {
