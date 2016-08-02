@@ -36,9 +36,10 @@
 			"revision": "8808370bf63524e115da1371ba42bce6739f3a6b"
 		},
 		{
-			"checksumSHA1": "wQudIit83haY5Ip3FD9Uxlz4QZA=",
-			"path": "gopkg.in/libgit2/git2go.v22",
-			"revision": "41ad00f868e7dfcdb04c7538f27350d400f710a3"
+			"checksumSHA1": "W9y5Ib20WD6Msz3iy7pfS4vRsb0=",
+			"path": "gopkg.in/libgit2/git2go.v24",
+			"revision": "8eaae73f85dd3df78df80d2dac066eb0866444ae",
+			"revisionTime": "2016-04-27T12:53:21Z"
 		}
 	],
 	"rootPath": "github.com/cpg1111/maestro"

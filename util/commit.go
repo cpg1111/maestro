@@ -1,7 +1,7 @@
 package util
 
 import (
-	git "gopkg.in/libgit2/git2go.v22"
+	git "gopkg.in/libgit2/git2go.v24"
 )
 
 func CommitToTree(repo *git.Repository, hash string) (*git.Tree, error) {

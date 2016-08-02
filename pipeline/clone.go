@@ -24,7 +24,7 @@ import (
 	"github.com/cpg1111/maestro/util"
 
 	pb "gopkg.in/cheggaaa/pb.v1"
-	git "gopkg.in/libgit2/git2go.v22"
+	git "gopkg.in/libgit2/git2go.v24"
 )
 
 // Project is a struct for the Project in the pipeline

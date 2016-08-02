@@ -20,7 +20,7 @@ import (
 	"github.com/cpg1111/maestro/config"
 
 	prompt "github.com/segmentio/go-prompt"
-	git "gopkg.in/libgit2/git2go.v22"
+	git "gopkg.in/libgit2/git2go.v24"
 )
 
 // RawCredentials is a struct for any credentials

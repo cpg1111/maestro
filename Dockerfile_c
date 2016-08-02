@@ -31,9 +31,9 @@ RUN apt-get -qq update && apt-get install -y cmake build-essential pkg-config op
     make && make install && \
     cd / && \
     rm -rf libssh2-1.4.2 && \
-    curl -L -o v0.22.0.tar.gz -z v0.22.0.tar.gz https://github.com/libgit2/libgit2/archive/v0.22.0.tar.gz && \
-    tar xzvf v0.22.0.tar.gz && \
-    cd libgit2-0.22.0 && \
+    curl -L -o v0.24.1.tar.gz -z v0.24.1.tar.gz https://github.com/libgit2/libgit2/archive/v0.24.1.tar.gz && \
+    tar xzvf v0.24.1.tar.gz && \
+    cd libgit2-0.24.1 && \
     pwd && \
     mkdir build && \
     cd build && \

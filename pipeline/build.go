@@ -16,7 +16,7 @@ package pipeline
 import (
 	"log"
 
-	git "gopkg.in/libgit2/git2go.v22"
+	git "gopkg.in/libgit2/git2go.v24"
 )
 
 func build(srv *DepService, index string, done chan string, errChan chan error, shouldDeploy *bool) {
