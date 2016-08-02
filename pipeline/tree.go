@@ -17,7 +17,7 @@ import (
 	"errors"
 	"log"
 
-	git "gopkg.in/libgit2/git2go.v22"
+	git "gopkg.in/libgit2/git2go.v24"
 )
 
 // DepTree is a dependency tree to determine whether or not to build services

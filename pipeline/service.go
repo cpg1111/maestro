@@ -25,7 +25,7 @@ import (
 	"github.com/cpg1111/maestro/credentials"
 	"github.com/cpg1111/maestro/util"
 
-	git "gopkg.in/libgit2/git2go.v22"
+	git "gopkg.in/libgit2/git2go.v24"
 )
 
 // Service is a struct for services in the pipeline
