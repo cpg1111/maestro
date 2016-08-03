@@ -9,6 +9,8 @@ Maestro pulls a given repository then builds a dependency tree based on a given 
 Once the dependency tree is created, Maestro diffs against a previous commit, with the pathspec being the root directory for each service.
 Maestro the flags only the changed services for the pipeline, which is then ran concurrently per teir of dependencies, therefore siblings will build, test and deploy concurrently, but parents and children dependencies will always be built in the correct order.
 
+For more details see this talk: https://www.youtube.com/watch?v=dGM8mYj8nz4&feature=youtu.be
+
 ## Install
 
 ```
@@ -102,6 +104,7 @@ or
 
 ```
     [Environment] # Environment will run before anything else, ExecSync will execute commands in the array synchronously, while exec will execute them concurrently
+    Env=["node_env:test", "docker_tls_verify:1"] # set environment variables all lowercase keys and keys are separated from values with ':'
     ExecSync=["apt-get install -y docker node go"]
     Exec=["docker pull someOrg/logger", "docker pull someOrg/models", "docker pull someOrg/auth", "docker pull someOrg/client"]
 
@@ -120,11 +123,17 @@ or
     Tag="0.1.0"
     TagType="git"
     Path="./src/logger"
-    BuildCMD="docker build -t logger ." # '.' is relative to the given path field of the service
-    TestCMD="go test ./..."
-    CheckCMD="bash -c 'docker images -a | grep logger'"
-    CreateCMD=""
-    UpdateCMD=""
+    BuildCMD=["docker build -t logger ."] # '.' is relative to the given path field of the service
+    TestCMD=["go test ./..."]
+    CheckCMD=["bash -c 'docker images -a | grep logger'"]
+    CreateCMD=[
+        "docker tag logger <org>/logger:{{.Curr}}",
+        "docker push <org>/logger:{{.Curr}}"
+    ]
+    UpdateCMD=[
+        "docker tag logger <org>/logger:{{.Curr}}",  # {{.Curr}} will template the current commit hash into the command
+        "docker push <org>/logger:{{.Curr}}"
+    ]
     DependsOn=[]
 
     [[Services]]
@@ -132,11 +141,17 @@ or
     Tag="0.1.0"
     TagType="git"
     Path="./src/models"
-    BuildCMD="docker build -t models ."
-    TestCMD="go test ./..."
-    CheckCMD="bash -c 'docker images -a | grep models'"
-    CreateCMD=""
-    UpdateCMD=""
+    BuildCMD=["docker build -t models ."]
+    TestCMD=["go test ./..."]
+    CheckCMD=["bash -c 'docker images -a | grep models'"]
+    CreateCMD=[
+        "docker tag models <org>/models:{{.Curr}}",
+        "docker push <org>/models:{{.Curr}}"
+    ]
+    UpdateCMD=[
+        "docker tag models <org>/models:{{.Curr}}",
+        "docker push <org>/models:{{.Curr}}"
+    ]
     DependsOn=["logger"] # Assume Dockerfile contains FROM logger
 
     [[Services]]
@@ -144,11 +159,19 @@ or
     Tag="0.1.0"
     TagType="git"
     Path="./src/auth"
-    BuildCMD="docker build -t auth ."
-    TestCMD="go test ./..."
-    CheckCMD="docker ps -a | grep auth"
-    CreateCMD="docker run --rm -d auth"
-    UpdateCMD="docker run --rm -d auth"
+    BuildCMD=["docker build -t auth ."]
+    TestCMD=["go test ./..."]
+    CheckCMD=["bash -c 'docker ps -a | grep auth'"]
+    CreateCMD=[
+        "docker tag auth <org>/auth:{{.Curr}}",
+        "docker tag auth <org>/auth:{{.Curr}}",
+        "docker run --rm -d <org>/auth:{{.Curr}}"
+    ]
+    UpdateCMD=[
+        "docker tag auth <org>/auth:{{.Curr}}",
+        "docker tag auth <org>/auth:{{.Curr}}",
+        "docker run --rm -d <org>/auth:{{.Curr}}"
+    ]
     DependsOn=["database"] # Assume Dockerfile contains FROM models
 
     [[Services]]
@@ -156,11 +179,19 @@ or
     Tag="0.1.0"
     TagType="git"
     Path="./src/client"
-    BuildCMD="docker build -t client ."
-    TestCMD="npm test"
-    CheckCMD="docker ps -a | grep client"
-    CreateCMD="docker run --rm -d client"
-    UpdateCMD="docker run --rm -d client"
+    BuildCMD=["docker build -t client ."]
+    TestCMD=["npm test"]
+    CheckCMD=["bash -c 'docker ps -a | grep client'"]
+    CreateCMD=[
+        "docker tag client <org>/client:{{.Curr}}",
+        "docker push <org>/client:{{.Curr}}",
+        "docker run --rm -d <org>/client:{{.Curr}}"
+    ]
+    UpdateCMD=[
+        "docker tag client <org>/client:{{.Curr}}",
+        "docker push <org>/client:{{.Curr}}",
+        "docker run --rm -d <org>/client:{{.Curr}}"
+    ]
     DependsOn=[]
 
     [CleanUp]
@@ -177,6 +208,9 @@ or
 - Allow larger log buffers
 - More possible dependency structures
 - Maestrod integration on clean up
+- Encrypted Environment variable values
+- Log Versbosity control
+- Debug with bash session
 
 ### Daemon
 See [this](https://github.com/cpg1111/maestrod) (https://github.com/cpg1111/maestrod) for a manager daemon for handling git push hooks and multiple concurrent builds and repos.
