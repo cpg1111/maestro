@@ -15,6 +15,7 @@ package pipeline
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -150,6 +151,9 @@ func (s *Service) logStdoutToFile(cmd *exec.Cmd) error {
 }
 
 func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
+	if cmdStr == "" {
+		return nil, errors.New("empty string is not a valid command")
+	}
 	cmdStr, tmplErr := util.TemplateCommits(cmdStr, s.lastCommit, s.currCommit)
 	if tmplErr != nil {
 		log.Println(tmplErr)
@@ -184,10 +188,10 @@ func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
 }
 
 func (s *Service) execCheck() (bool, error) {
-	if len(s.conf.CheckCMD) == 0 {
-		return true, nil
-	}
 	for i := range s.conf.CheckCMD {
+		if s.conf.CheckCMD[i] == "" {
+			continue
+		}
 		cmdStr, tmplErr := util.TemplateCommits(s.conf.CheckCMD[i], s.lastCommit, s.currCommit)
 		if tmplErr != nil {
 			return false, tmplErr
@@ -228,9 +232,6 @@ func (s *Service) execTests() error {
 }
 
 func (s *Service) execCreate() error {
-	if len(s.conf.CreateCMD) == 0 {
-		return nil
-	}
 	for i := range s.conf.CreateCMD {
 		cmd, err := s.execSrvCmd(s.conf.CreateCMD[i], s.conf.Path)
 		if err != nil {
@@ -245,9 +246,6 @@ func (s *Service) execCreate() error {
 }
 
 func (s *Service) execUpdate() error {
-	if len(s.conf.UpdateCMD) == 0 {
-		return nil
-	}
 	for i := range s.conf.UpdateCMD {
 		cmd, err := s.execSrvCmd(s.conf.UpdateCMD[i], s.conf.Path)
 		if err != nil {
