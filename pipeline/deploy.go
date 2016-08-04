@@ -21,7 +21,7 @@ func check(srv *Service) error {
 	log.Println("Checking whether to update or create", srv.conf.Name)
 	check, checkErr := srv.execCheck()
 	if checkErr != nil {
-		return checkErr
+		log.Println(checkErr)
 	}
 	if check {
 		log.Println("Found service,", srv.conf.Name, "updating now")
