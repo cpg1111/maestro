@@ -1,0 +1,6 @@
+{
+  "name": "Maestro",
+  "tagline": "A Highly Concurrent CI/CD Build Manager",
+  "body": "### Perfect for Micro-Services and Shared Dependencies\r\nWhether you have all of your micro-services in a single repo or submoduled out, you can leverage Maestro for fast easy deployments, while keeping all of your source code in sync with what's deployed. Maestro will build any project.\r\n\r\n### Works Great with Docker and other packaging tools\r\nMaestro was built with well packaged and portable software in mind.  First of which was Docker, which Maestro is optimized for faster builds, pushes and pulls of.  Other packaging tools such as other container image builders (ie rkt), and vm image packers such as Packer work well with Maestro as well. \r\n\r\n### Integrate with Your Existing Infrastructure\r\nThe manager daemon will plug right into plenty of existing infrastructures, including Kubernetes, Docker, Mesos, AWS, and GCE.  It additionally supports a native runtime, running its own container runtime for isolation of each build.\r\n\r\n### For Details See\r\n\r\n- [Maestro](https://github.com/cpg1111/maestro)\r\n\r\n- [Maestrod](https://github.com/cpg1111/maestrod)\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
