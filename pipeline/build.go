@@ -17,38 +17,50 @@ import (
 	"log"
 
 	git "gopkg.in/libgit2/git2go.v24"
+
+	"github.com/cpg1111/maestro/statecom"
 )
 
-func build(srv *DepService, index string, done chan string, errChan chan error, shouldDeploy *bool) {
+func build(srv *DepService, index string, stateCom *statecom.StateCom, done chan string, errChan chan error, shouldDeploy *bool) {
+	stateCom.Services[index].SetState("building", true)
 	err := srv.build.execBuild()
 	if err != nil {
+		stateCom.Services[index].SetState("built", false)
 		errChan <- err
 		return
 	}
+	stateCom.Services[index].SetState("built", true)
 	log.Println("Run tests")
+	stateCom.Services[index].SetState("testing", true)
 	err = RunTests(srv.build)
 	if err != nil {
+		stateCom.Services[index].SetState("tested", false)
 		errChan <- err
 		return
 	}
 	log.Println("Tests done")
+	stateCom.Services[index].SetState("tested", true)
 	if !*shouldDeploy {
+		stateCom.Services[index].SetState("finished", true)
 		log.Println("No Deploy")
 		done <- index
 		return
 	}
 	log.Println("Checking deployment...")
+	stateCom.Services[index].SetState("deploying", true)
 	err = check(srv.build)
 	if err != nil {
+		stateCom.Services[index].SetState("finished", false)
 		errChan <- err
 		return
 	}
+	stateCom.Services[index].SetState("finished", true)
 	srv.build.shouldBuild = false
 	done <- index
 	return
 }
 
-func runServiceBuild(srvs map[string]*DepService, testAll, shouldDeploy *bool) error {
+func runServiceBuild(srvs map[string]*DepService, stateCom *statecom.StateCom, testAll, shouldDeploy *bool) error {
 	doneChan := make(chan string)
 	errChan := make(chan error)
 	buildTotal := 0
@@ -56,9 +68,9 @@ func runServiceBuild(srvs map[string]*DepService, testAll, shouldDeploy *bool) e
 		if srvs[i].build.shouldBuild || *testAll {
 			buildTotal++
 			log.Println("Building", srvs[i].build.conf.Name)
-			go build(srvs[i], i, doneChan, errChan, shouldDeploy)
+			go build(srvs[i], i, stateCom, doneChan, errChan, shouldDeploy)
 		} else {
-			runErr := runServiceBuild(srvs[i].Children, testAll, shouldDeploy)
+			runErr := runServiceBuild(srvs[i].Children, stateCom, testAll, shouldDeploy)
 			if runErr != nil {
 				return runErr
 			}
@@ -71,7 +83,7 @@ func runServiceBuild(srvs map[string]*DepService, testAll, shouldDeploy *bool) e
 			case index := <-doneChan:
 				total++
 				if len(srvs[index].Children) > 0 {
-					runErr := runServiceBuild(srvs[index].Children, testAll, shouldDeploy)
+					runErr := runServiceBuild(srvs[index].Children, stateCom, testAll, shouldDeploy)
 					if runErr != nil {
 						return runErr
 					}
@@ -91,7 +103,7 @@ func runServiceBuild(srvs map[string]*DepService, testAll, shouldDeploy *bool) e
 }
 
 // Run runs the build for all changed services
-func Run(depTree *DepTree, repo *git.Repository, lastBuildCommit, currBuildCommit *string, testAll, shouldDeploy *bool) error {
+func Run(depTree *DepTree, repo *git.Repository, stateCom *statecom.StateCom, lastBuildCommit, currBuildCommit *string, testAll, shouldDeploy *bool) error {
 	currNode := depTree.CurrNode
 	travErr := TraverseTree(currNode, repo, lastBuildCommit, currBuildCommit)
 	if travErr != nil {
@@ -99,7 +111,7 @@ func Run(depTree *DepTree, repo *git.Repository, lastBuildCommit, currBuildCommi
 	}
 	rootMap := make(map[string]*DepService)
 	rootMap["root"] = currNode
-	err := runServiceBuild(rootMap, testAll, shouldDeploy)
+	err := runServiceBuild(rootMap, stateCom, testAll, shouldDeploy)
 	if err != nil {
 		return err
 	}

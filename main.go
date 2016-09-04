@@ -15,6 +15,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -23,6 +24,7 @@ import (
 	"github.com/cpg1111/maestro/credentials"
 	"github.com/cpg1111/maestro/environment"
 	"github.com/cpg1111/maestro/pipeline"
+	"github.com/cpg1111/maestro/statecom"
 	"github.com/cpg1111/maestro/util"
 )
 
@@ -59,6 +61,14 @@ func checkNoPrevCommit() {
 	}
 }
 
+func getMaestrodEndpoint() string {
+	endpoint := fmt.Sprintf("%s:%s", os.Getenv("MAESTROD_SERVICE_HOST"), os.Getenv("MAESTROD_SERVICE_PORT"))
+	if len(endpoint) > 1 {
+		return endpoint
+	}
+	return ""
+}
+
 func main() {
 	flag.Parse()
 	checkNoPrevCommit()
@@ -68,14 +78,18 @@ func main() {
 	if confErr != nil {
 		log.Fatal(confErr)
 	}
+	stateCom := statecom.New(conf, getMaestrodEndpoint())
 	log.Println("Loading Credentials...")
+	stateCom.Start()
 	creds, credErr := credentials.NewCreds(&conf.Project)
 	if credErr != nil {
 		log.Fatal(credErr)
 	}
+	stateCom.Env()
 	setEnv(&conf)
 	log.Println("Creating Pipeline...")
 	pipe := pipeline.New(&conf, creds, *clonePath, *checkoutBranch, *lastBuildCommit, *currBuildCommit)
+	stateCom.Cloning()
 	repo, cloneErr := pipe.Clone()
 	if cloneErr != nil {
 		log.Fatal(cloneErr)
@@ -87,11 +101,13 @@ func main() {
 	log.Println("Building Dependency Tree...")
 	depTree := pipeline.NewTreeList(pipe)
 	log.Println("Building Serivces...")
-	buildErr := pipeline.Run(depTree, repo, lastBuildCommit, currBuildCommit, testAll, deploy)
+	buildErr := pipeline.Run(depTree, repo, stateCom, lastBuildCommit, currBuildCommit, testAll, deploy)
 	if buildErr != nil {
 		os.RemoveAll(*clonePath)
 		log.Fatal(buildErr)
 	}
 	log.Println("Cleaning Up Build...")
+	stateCom.CleanUp()
 	cleanUp.Run(&conf.CleanUp, clonePath)
+	stateCom.Done()
 }
