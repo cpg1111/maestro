@@ -92,3 +92,8 @@ test:
 uninstall:
 	rm -rf /etc/maestro
 	rm -rf /usr/bin/maestro
+docker:
+	docker build -t maestro_c -f Dockerfile_c .
+	docker build -t maestro_build -f Dockerfile_build .
+	docker build -t maestro_bin_deps -f Dockerfile_bin .
+	docker build -t maestro -f Dockerfile_fully_loaded .
