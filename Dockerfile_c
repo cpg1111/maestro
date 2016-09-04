@@ -1,13 +1,13 @@
 FROM golang:1.6
 RUN apt-get -qq update && apt-get install -y cmake build-essential pkg-config openssl zlib1g curl wget && \
-    curl -o zlib-1.2.8.tar.gz -z zlib-1.2.8.tar.gz http://zlib.net/zlib-1.2.8.tar.gz && \
+    curl -L -o zlib-1.2.8.tar.gz -z zlib-1.2.8.tar.gz http://zlib.net/zlib-1.2.8.tar.gz && \
     tar xzvf zlib-1.2.8.tar.gz && \
     cd zlib-1.2.8 && \
     ./configure && \
     make && make install && \
     cd / && \
     rm -rf zlib-1.2.8 && \
-    curl -o openssl-1.0.2h.tar.gz -z openssl-1.0.2h.tar.gz https://openssl.org/source/openssl-1.0.2h.tar.gz && \
+    curl -L -o openssl-1.0.2h.tar.gz -z openssl-1.0.2h.tar.gz https://openssl.org/source/openssl-1.0.2h.tar.gz && \
     tar xzvf openssl-1.0.2h.tar.gz && \
     cd openssl-1.0.2h && \
     ./config --prefix=/usr \
