@@ -11,6 +11,8 @@ import (
 )
 
 type State struct {
+	Project    string
+	Branch     string
 	StateLabel string
 	TimeStamp  time.Time
 }
@@ -21,18 +23,24 @@ type ServiceState struct {
 }
 
 type StateCom struct {
+	Project  string
+	Branch   string
 	Services map[string]*ServiceStateMgr
 	Global   *State
 	client   *http.Client
 }
 
-func New(conf config.Config, maestrodEndpoint string) *StateCom {
+func New(conf config.Config, maestrodEndpoint, branch string) *StateCom {
 	var client *http.Client
 	if len(maestrodEndpoint) > 0 {
 		client = &http.Client{}
 	}
 	stateCom := &StateCom{
+		Project: conf.Project.RepoURL,
+		Branch:  branch,
 		Global: &State{
+			Project:    conf.Project.RepoURL,
+			Branch:     branch,
 			StateLabel: "pending",
 			TimeStamp:  time.Now(),
 		},
@@ -65,6 +73,8 @@ func (s *StateCom) Send(state interface{}) {
 }
 
 func (s *StateCom) setState(state *State) {
+	state.Project = s.Project
+	state.Branch = s.Branch
 	s.Send(state)
 	s.Global = state
 }
@@ -113,6 +123,8 @@ func (s *StateCom) SetServiceState(srv *ServiceStateMgr) {
 	srvState := &ServiceState{
 		Name: srv.Name,
 		State: &State{
+			Project:    s.Project,
+			Branch:     s.Project,
 			StateLabel: srv.State,
 			TimeStamp:  time.Now(),
 		},

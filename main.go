@@ -78,7 +78,7 @@ func main() {
 	if confErr != nil {
 		log.Fatal(confErr)
 	}
-	stateCom := statecom.New(conf, getMaestrodEndpoint())
+	stateCom := statecom.New(conf, getMaestrodEndpoint(), *checkoutBranch)
 	log.Println("Loading Credentials...")
 	stateCom.Start()
 	creds, credErr := credentials.NewCreds(&conf.Project)
