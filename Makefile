@@ -97,3 +97,19 @@ docker:
 	docker build -t maestro_build -f Dockerfile_build .
 	docker build -t maestro_bin_deps -f Dockerfile_bin .
 	docker build -t maestro -f Dockerfile_fully_loaded .
+e2e-test:
+	docker run --rm -t \
+	-v ${HOME}/.ssh/:/root/.ssh/ \
+	-v `pwd`:/etc/maestro/ \
+	-v ${DOCKER_CERT_PATH}:${DOCKER_CERT_PATH} \
+	-e DOCKER_HOST=${DOCKER_HOST} \
+	-e DOCKER_MACHINE_NAME=${DOCKER_MACHINE_NAME} \
+	-e DOCKER_TLS_VERIFY=1 \
+	-e DOCKER_CERT_PATH=${DOCKER_CERT_PATH} \
+	maestro \
+	--clone-path=/tmp/build \
+	--branch=master \
+	--prev-commit=ca30ac184cd46fc1c7d59d7973f87350050e39ee \
+	--curr-commit=eaeca0254dc1bd04413f7823fe03f81583ed6b9c \
+	--config=/etc/maestro/test_conf.toml \
+	--deploy=true
