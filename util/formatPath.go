@@ -23,10 +23,15 @@ func FmtDiffPath(clonePath, srvPath string) (newStr string) {
 	if strings.Index(srvPath, clonePath) == -1 && strings.Index(srvPath, clonePath[1:]) > -1 {
 		clonePath = clonePath[1:]
 	}
-	if clonePath[len(clonePath)-1] != '/' {
+	if clonePath[len(clonePath)-1] != '/' && srvPath[len(srvPath)-1] == '/' {
 		clonePath = fmt.Sprintf("%s/", clonePath)
 	}
 	newStr = strings.Replace(srvPath, clonePath, "", 1)
+	fmt.Println(newStr, clonePath, len(newStr))
+	if len(newStr) <= 1 {
+		newStr = "*"
+		return
+	}
 	if newStr[len(newStr)-1] != '/' {
 		newStr = fmt.Sprintf("%s/", newStr)
 	}
