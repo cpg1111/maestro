@@ -77,12 +77,13 @@ func runServiceBuild(srvs map[string]*DepService, stateCom *statecom.StateCom, t
 		}
 	}
 	total := 0
+	var siblingFailed bool
 	if buildTotal > 0 {
 		for {
 			select {
 			case index := <-doneChan:
 				total++
-				if len(srvs[index].Children) > 0 {
+				if len(srvs[index].Children) > 0 && !siblingFailed {
 					runErr := runServiceBuild(srvs[index].Children, stateCom, testAll, shouldDeploy)
 					if runErr != nil {
 						return runErr
@@ -93,7 +94,12 @@ func runServiceBuild(srvs map[string]*DepService, stateCom *statecom.StateCom, t
 				}
 			case errMsg := <-errChan:
 				if errMsg != nil {
+					total++
 					log.Println(errMsg)
+					if total < buildTotal {
+						siblingFailed = true
+						continue
+					}
 					return errMsg
 				}
 			}

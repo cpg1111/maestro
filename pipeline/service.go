@@ -41,6 +41,7 @@ type Service struct {
 	currCommit    string
 	path          string
 	diffPath      string
+	HasFailed     bool
 }
 
 // NewService returns an instance of a pipeline service
@@ -212,6 +213,7 @@ func (s *Service) execBuild() error {
 	for i := range s.conf.BuildCMD {
 		_, err := s.execSrvCmd(s.conf.BuildCMD[i], s.conf.Path)
 		if err != nil {
+			s.HasFailed = true
 			return err
 		}
 	}
@@ -224,6 +226,7 @@ func (s *Service) execTests() error {
 	for i := range s.conf.TestCMD {
 		_, err := s.execSrvCmd(s.conf.TestCMD[i], s.conf.Path)
 		if err != nil {
+			s.HasFailed = true
 			return err
 		}
 	}
@@ -235,6 +238,7 @@ func (s *Service) execCreate() error {
 	for i := range s.conf.CreateCMD {
 		cmd, err := s.execSrvCmd(s.conf.CreateCMD[i], s.conf.Path)
 		if err != nil {
+			s.HasFailed = true
 			return err
 		}
 		if s.conf.HealthCheck.Type == "PTRACE_ATTACH" {
@@ -242,25 +246,33 @@ func (s *Service) execCreate() error {
 			return passPid(cmd.Process.Pid).(error)
 		}
 	}
-	return HealthCheck(&s.conf).(error)
+	checkRes := HealthCheck(&s.conf).(error)
+	if checkRes != nil {
+		s.HasFailed = true
+		return checkRes.(error)
+	}
+	return nil
 }
 
 func (s *Service) execUpdate() error {
 	for i := range s.conf.UpdateCMD {
 		cmd, err := s.execSrvCmd(s.conf.UpdateCMD[i], s.conf.Path)
 		if err != nil {
+			s.HasFailed = true
 			return err
 		}
 		if s.conf.HealthCheck.Type == "PTRACE_ATTACH" {
 			passPid := HealthCheck(&s.conf).(func(pid int) error)
 			passed := passPid(cmd.Process.Pid)
 			if passed != nil {
+				s.HasFailed = true
 				return passed.(error)
 			}
 		}
 	}
 	checkRes := HealthCheck(&s.conf)
 	if checkRes != nil {
+		s.HasFailed = true
 		return checkRes.(error)
 	}
 	return nil
