@@ -17,11 +17,11 @@ Tag="0.0.1"
 TagType=""
 Path="."
 BuildLogFilePath="./test.log"
-BuildCMD=["docker build -f Dockerfile_build -t maestro_build .", "docker run -v $(pwd)/dist:/opt/bin/ && docker build -t cpg1111/maestro ."]
-TestCMD=["go test -v ./..."]
+BuildCMD=["make"]
+TestCMD=["make test"]
 CheckCMD=["docker ps -a"]
-CreateCMD=["docker push cpg1111/maestro"]
-UpdateCMD=["docker rm -f test && docker run -n test -d test"]
+CreateCMD=["make docker"]
+UpdateCMD=["make docker"]
 DependsOn=[]
     [HealthCheck]
     Type="PTRACE_ATTACH"
@@ -29,7 +29,7 @@ DependsOn=[]
     Retrys=3
 
 [CleanUp]
-AdditionalCMDs=["docker inspect cpg1111/maestro"]
+AdditionalCMDs=["docker inspect maestro"]
 InDaemon=false
     [[CleanUp.Artifacts]]
     RuntimeFilePath="./dist/maestro"

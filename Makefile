@@ -98,7 +98,7 @@ docker:
 	docker build -t maestro_bin_deps -f Dockerfile_bin .
 	docker build -t maestro -f Dockerfile_fully_loaded .
 e2e-test:
-	docker run --rm -t \
+	docker run --rm -it \
 	-v ${HOME}/.ssh/:/root/.ssh/ \
 	-v `pwd`:/etc/maestro/ \
 	-v ${DOCKER_CERT_PATH}:${DOCKER_CERT_PATH} \
