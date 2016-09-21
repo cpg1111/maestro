@@ -22,39 +22,40 @@ import (
 )
 
 func build(srv *DepService, index string, stateCom *statecom.StateCom, done chan string, errChan chan error, shouldDeploy *bool) {
-	stateCom.Services[index].SetState("building", true)
+	buildName := srv.build.conf.Name
+	stateCom.Services[buildName].SetState("building", true)
 	err := srv.build.execBuild()
 	if err != nil {
-		stateCom.Services[index].SetState("built", false)
+		stateCom.Services[buildName].SetState("built", false)
 		errChan <- err
 		return
 	}
-	stateCom.Services[index].SetState("built", true)
+	stateCom.Services[buildName].SetState("built", true)
 	log.Println("Run tests")
-	stateCom.Services[index].SetState("testing", true)
+	stateCom.Services[buildName].SetState("testing", true)
 	err = RunTests(srv.build)
 	if err != nil {
-		stateCom.Services[index].SetState("tested", false)
+		stateCom.Services[buildName].SetState("tested", false)
 		errChan <- err
 		return
 	}
 	log.Println("Tests done")
-	stateCom.Services[index].SetState("tested", true)
+	stateCom.Services[buildName].SetState("tested", true)
 	if !*shouldDeploy {
-		stateCom.Services[index].SetState("finished", true)
+		stateCom.Services[buildName].SetState("finished", true)
 		log.Println("No Deploy")
 		done <- index
 		return
 	}
 	log.Println("Checking deployment...")
-	stateCom.Services[index].SetState("deploying", true)
+	stateCom.Services[buildName].SetState("deploying", true)
 	err = check(srv.build)
 	if err != nil {
-		stateCom.Services[index].SetState("finished", false)
+		stateCom.Services[buildName].SetState("finished", false)
 		errChan <- err
 		return
 	}
-	stateCom.Services[index].SetState("finished", true)
+	stateCom.Services[buildName].SetState("finished", true)
 	srv.build.shouldBuild = false
 	done <- index
 	return
