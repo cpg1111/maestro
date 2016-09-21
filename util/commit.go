@@ -4,6 +4,7 @@ import (
 	git "gopkg.in/libgit2/git2go.v24"
 )
 
+// CommitToTree takes a commit hash and fetches its git tree
 func CommitToTree(repo *git.Repository, hash string) (*git.Tree, error) {
 	commitObj, commitErr := repo.RevparseSingle(hash)
 	if commitErr != nil {
