@@ -1,0 +1,24 @@
+hash: edd86b45a62ac6d69a90d3b2a35c7ae2b4dffe42356feb7d512a370c2503d6c0
+updated: 2016-10-19T22:35:39.789656434-04:00
+imports:
+- name: github.com/BurntSushi/toml
+  version: bbd5bb678321a0d6e58f1099321dfa73391c1b6f
+- name: github.com/howeyc/gopass
+  version: 66487b23f2880ba32e185121d2cd51a338ea069a
+- name: github.com/segmentio/go-prompt
+  version: f3218e418a3d6dbe1dcab5809d80fa6e15c05cb4
+- name: golang.org/x/crypto
+  version: 1777f3ba8c1fed80fcaec3317e3aaa4f627764d2
+  subpackages:
+  - ssh/terminal
+- name: golang.org/x/sys
+  version: 002cbb5f952456d0c50e0d2aff17ea5eca716979
+  subpackages:
+  - unix
+- name: gopkg.in/cheggaaa/pb.v1
+  version: 8808370bf63524e115da1371ba42bce6739f3a6b
+- name: gopkg.in/libgit2/git2go.v24
+  version: 8eaae73f85dd3df78df80d2dac066eb0866444ae
+testImports:
+- name: github.com/fatih/structs
+  version: 73c4e3dc02a78deaba8640d5f3a8c236ec1352bf

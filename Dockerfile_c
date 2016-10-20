@@ -1,4 +1,4 @@
-FROM golang:1.6
+FROM golang:1.7
 RUN apt-get -qq update && apt-get install -y cmake build-essential pkg-config openssl zlib1g curl wget && \
     curl -L -o zlib-1.2.8.tar.gz -z zlib-1.2.8.tar.gz http://zlib.net/zlib-1.2.8.tar.gz && \
     tar xzvf zlib-1.2.8.tar.gz && \
