@@ -8,7 +8,7 @@ import (
 
 var (
 	conf, confErr = config.Load("../test_conf.toml", "/tmp/test")
-	stateCom      = New(conf, "")
+	stateCom      = New(conf, "", "")
 )
 
 func TestStart(t *testing.T) {
