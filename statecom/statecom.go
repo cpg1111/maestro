@@ -10,6 +10,7 @@ import (
 	"github.com/cpg1111/maestro/config"
 )
 
+// State is the overall state
 type State struct {
 	Project    string
 	Branch     string
@@ -17,11 +18,13 @@ type State struct {
 	TimeStamp  time.Time
 }
 
+// ServiceState is the state of a service
 type ServiceState struct {
 	Name  string
 	State *State
 }
 
+// StateCom is responsible for sending messages between Maestro and Maestrod for state
 type StateCom struct {
 	Project  string
 	Branch   string
@@ -30,6 +33,7 @@ type StateCom struct {
 	client   *http.Client
 }
 
+// New returns a pointer to a StateCom struct
 func New(conf config.Config, maestrodEndpoint, branch string) *StateCom {
 	var client *http.Client
 	if len(maestrodEndpoint) > 0 {
@@ -53,6 +57,7 @@ func New(conf config.Config, maestrodEndpoint, branch string) *StateCom {
 	return stateCom
 }
 
+// Send sends the messages out to maestrod
 func (s *StateCom) Send(state interface{}) {
 	if s.client != nil {
 		go func() {
@@ -79,46 +84,43 @@ func (s *StateCom) setState(state *State) {
 	s.Global = state
 }
 
+func (s *StateCom) updateState(state string) {
+	s.setState(&State{
+		StateLabel: state,
+		TimeStamp:  time.Now(),
+	})
+}
+
+// Start sets the state of the build to started
 func (s *StateCom) Start() {
-	startState := &State{
-		StateLabel: "started",
-		TimeStamp:  time.Now(),
-	}
-	s.setState(startState)
+	s.updateState("started")
 }
 
+// Env sets the state of the build to
+// creating the environment
 func (s *StateCom) Env() {
-	envState := &State{
-		StateLabel: "creating env",
-		TimeStamp:  time.Now(),
-	}
-	s.setState(envState)
+	s.updateState("creating env")
 }
 
+// Cloning sets the state of the build to
+// cloning repo
 func (s *StateCom) Cloning() {
-	cloneState := &State{
-		StateLabel: "cloning repo",
-		TimeStamp:  time.Now(),
-	}
-	s.setState(cloneState)
+	s.updateState("cloning repo")
 }
 
+// CleanUp sets the state of the build to
+// clean up
 func (s *StateCom) CleanUp() {
-	cleanUpState := &State{
-		StateLabel: "clean up",
-		TimeStamp:  time.Now(),
-	}
-	s.setState(cleanUpState)
+	s.updateState("clean up")
 }
 
+// Done sets the state of the build to
+// done
 func (s *StateCom) Done() {
-	doneState := &State{
-		StateLabel: "done",
-		TimeStamp:  time.Now(),
-	}
-	s.setState(doneState)
+	s.updateState("done")
 }
 
+// SetServiceState sets the state of a specific service
 func (s *StateCom) SetServiceState(srv *ServiceStateMgr) {
 	srvState := &ServiceState{
 		Name: srv.Name,

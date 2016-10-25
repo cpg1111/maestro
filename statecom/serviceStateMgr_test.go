@@ -8,7 +8,7 @@ import (
 
 var (
 	srvConf, srvConfErr = config.Load("../test_conf.toml", "/tmp/test/")
-	srvStateCom         = New(srvConf, "")
+	srvStateCom         = New(srvConf, "", "")
 	serviceMgr          = NewServiceStateMgr(srvConf.Services[0], srvStateCom)
 )
 
