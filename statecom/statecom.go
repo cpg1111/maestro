@@ -3,8 +3,10 @@ package statecom
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/cpg1111/maestro/config"
@@ -66,11 +68,19 @@ func (s *StateCom) Send(state interface{}) {
 				log.Println("WARNING", marshErr)
 			}
 			payloadRdr := bytes.NewReader(payload)
-			resp, postErr := s.client.Post("/state", "application/json", payloadRdr)
+			resp, postErr := s.client.Post(
+				fmt.Sprintf(
+					"http://%s:%s/state",
+					os.Getenv("MAESTROD_SERVICE_HOST"),
+					os.Getenv("MAESTROD_SERVICE_PORT"),
+				),
+				"application/json",
+				payloadRdr,
+			)
 			if postErr != nil {
 				log.Println("WARNING", postErr.Error())
 			}
-			if resp.StatusCode != 201 {
+			if resp != nil && resp.StatusCode != 201 {
 				log.Println("WARNING STATEUPDATE NOT SENT")
 			}
 		}()
