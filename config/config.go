@@ -47,14 +47,18 @@ type Service struct {
 
 // Project is the struct of the project to build
 type Project struct {
-	RepoURL        string
-	CloneCMD       string
-	AuthType       string
-	SSHPrivKeyPath string
-	SSHPubKeyPath  string
-	Username       string
-	Password       string
-	PromptForPWD   bool
+	RepoURL         string
+	CloneCMD        string
+	AuthType        string
+	SSHPrivKeyPath  string
+	SSHPubKeyPath   string
+	Username        string
+	Password        string
+	PromptForPWD    bool
+	MaestrodHostEnv string
+	MaestrodPortEnv string
+	MaestrodHost    string
+	MaestrodPort    int
 }
 
 // Environment is the config for the environment

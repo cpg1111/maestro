@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/cpg1111/maestro/config"
@@ -28,11 +29,31 @@ type ServiceState struct {
 
 // StateCom is responsible for sending messages between Maestro and Maestrod for state
 type StateCom struct {
-	Project  string
-	Branch   string
-	Services map[string]*ServiceStateMgr
-	Global   *State
-	client   *http.Client
+	Project      string
+	Branch       string
+	Services     map[string]*ServiceStateMgr
+	Global       *State
+	client       *http.Client
+	maestrodHost string
+	maestrodPort int
+}
+
+func getMaestrodInfo(conf config.Project) (host string, port int) {
+	if len(conf.MaestrodHostEnv) > 0 {
+		host = os.Getenv(conf.MaestrodHostEnv)
+	} else {
+		host = conf.MaestrodHost
+	}
+	if len(conf.MaestrodPortEnv) > 0 {
+		var pErr error
+		port, pErr = strconv.Atoi(os.Getenv(conf.MaestrodPortEnv))
+		if pErr != nil {
+			panic(pErr)
+		}
+	} else {
+		port = conf.MaestrodPort
+	}
+	return
 }
 
 // New returns a pointer to a StateCom struct
@@ -41,6 +62,7 @@ func New(conf config.Config, maestrodEndpoint, branch string) *StateCom {
 	if len(maestrodEndpoint) > 0 {
 		client = &http.Client{}
 	}
+	mdHost, mdPort := getMaestrodInfo(conf.Project)
 	stateCom := &StateCom{
 		Project: conf.Project.RepoURL,
 		Branch:  branch,
@@ -50,7 +72,9 @@ func New(conf config.Config, maestrodEndpoint, branch string) *StateCom {
 			StateLabel: "pending",
 			TimeStamp:  time.Now(),
 		},
-		client: client,
+		client:       client,
+		maestrodHost: mdHost,
+		maestrodPort: mdPort,
 	}
 	stateCom.Services = make(map[string]*ServiceStateMgr)
 	for i := 0; i < len(conf.Services); i++ {
@@ -70,9 +94,9 @@ func (s *StateCom) Send(state interface{}) {
 			payloadRdr := bytes.NewReader(payload)
 			resp, postErr := s.client.Post(
 				fmt.Sprintf(
-					"http://%s:%s/state",
-					os.Getenv("MAESTROD_SERVICE_HOST"),
-					os.Getenv("MAESTROD_SERVICE_PORT"),
+					"http://%s:%d/state",
+					s.maestrodHost,
+					s.maestrodPort,
 				),
 				"application/json",
 				payloadRdr,
