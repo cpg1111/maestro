@@ -27,6 +27,8 @@ import (
 	"github.com/cpg1111/maestro/util"
 )
 
+const PTAttach = "PTRACE_ATTACH"
+
 func healthcheckCMD(cmd, path string) error {
 	fmtCMD, fmtCMDErr := util.FmtCommand(cmd, path)
 	if fmtCMDErr != nil {
@@ -77,7 +79,7 @@ func HealthCheck(conf *config.Service) interface{} {
 		return healthcheckHTTPGet(conf.HealthCheck.Address, conf.HealthCheck.ExpectedCondition)
 	case "PING":
 		return healthcheckICMPPing(conf.HealthCheck.Address)
-	case "PTRACE_ATTACH":
+	case PTAttach:
 		return func(pid int) error { return healthcheckPtrace(pid) }
 	default:
 		return nil

@@ -44,6 +44,8 @@ type Service struct {
 	HasFailed     bool
 }
 
+const GHWorkingCommit = "0000000000000000000000000000000000000000"
+
 // NewService returns an instance of a pipeline service
 func NewService(srv config.Service, creds *credentials.RawCredentials, clonePath, last, curr string) *Service {
 	diffPath := util.FmtDiffPath(clonePath, srv.Path)
@@ -88,7 +90,7 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCo
 	diffOpts.Pathspec = []string{s.diffPath}
 	var diff *git.Diff
 	var diffErr error
-	if *currBuildCommit == "" {
+	if *currBuildCommit == "" || *currBuildCommit == GHWorkingCommit {
 		diff, diffErr = diffToWorkingDir(repo, prevTree, &diffOpts)
 	} else {
 		diff, diffErr = diffToMostRecentCommit(repo, prevTree, &diffOpts, *currBuildCommit)
@@ -241,7 +243,7 @@ func (s *Service) execCreate() error {
 			s.HasFailed = true
 			return err
 		}
-		if s.conf.HealthCheck.Type == "PTRACE_ATTACH" {
+		if s.conf.HealthCheck.Type == PTAttach {
 			passPid := HealthCheck(&s.conf).(func(pid int) error)
 			return passPid(cmd.Process.Pid).(error)
 		}
@@ -261,7 +263,7 @@ func (s *Service) execUpdate() error {
 			s.HasFailed = true
 			return err
 		}
-		if s.conf.HealthCheck.Type == "PTRACE_ATTACH" {
+		if s.conf.HealthCheck.Type == PTAttach {
 			passPid := HealthCheck(&s.conf).(func(pid int) error)
 			passed := passPid(cmd.Process.Pid)
 			if passed != nil {
