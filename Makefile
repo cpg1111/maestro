@@ -75,10 +75,10 @@ get-deps:
 	cd ${GOPATH} && \
 	go get -u github.com/kardianos/govendor && \
 	cd - && \
-	govendor sync
+	glide install
 	rm -rf tmp
 build:
-	govendor sync
+	glide install
 	go build -linkshared -o maestro github.com/cpg1111/maestro/
 	$(LDD_CMD) ./maestro
 install:

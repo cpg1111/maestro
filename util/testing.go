@@ -14,6 +14,7 @@ limitations under the License.
 package util
 
 import (
+	"fmt"
 	"os"
 	"syscall"
 )
@@ -40,5 +41,28 @@ func CheckForFile(path string) error {
 	if statErr != nil {
 		return statErr
 	}
+	return nil
+}
+
+// CheckFileContents reads a file and compares it to a string
+func CheckFileContents(path, expect string) error {
+	file, openErr := os.Open(path)
+	if openErr != nil {
+		return openErr
+	}
+	var result []byte
+	_, readErr := file.Read(result)
+	if readErr != nil {
+		return readErr
+	}
+	if (string)(result) != expect {
+		return fmt.Errorf(
+			"expected: %s, in file: %s, found: %s",
+			expect,
+			path,
+			(string)(result),
+		)
+	}
+	os.Remove(path)
 	return nil
 }

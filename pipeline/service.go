@@ -203,6 +203,7 @@ func (s *Service) execCheck() (bool, error) {
 		if cmdErr != nil {
 			return false, cmdErr
 		}
+		fmt.Printf("%d\n", len(cmd.Args))
 		checkErr := cmd.Run()
 		if checkErr != nil {
 			return false, checkErr
