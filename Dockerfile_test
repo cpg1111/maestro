@@ -1,4 +1,4 @@
-FROM maestro_c
+FROM maestro_bin_deps
 COPY . $GOPATH/src/github.com/cpg1111/maestro/
 WORKDIR $GOPATH/src/github.com/cpg1111/maestro
 ENTRYPOINT ["go", "test"]

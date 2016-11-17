@@ -21,13 +21,19 @@ import (
 
 // CheckForProcess checks for a running process using the ptrace syscall
 func CheckForProcess(pid int, found chan bool, err chan error) {
-	ptraceErr := syscall.PtraceAttach(pid)
-	if ptraceErr != nil {
-		err <- ptraceErr
+	procDir, readErr := os.Open(fmt.Sprintf("/proc/%d/", pid))
+	if readErr != nil {
+		err <- readErr
 		found <- false
 		return
 	}
-	found <- true
+	stat, statErr := procDir.Stat()
+	if statErr != nil {
+		err <- statErr
+		found <- false
+		return
+	}
+	found <- (stat != nil)
 	syscall.Kill(pid, syscall.SIGKILL)
 }
 

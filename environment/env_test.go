@@ -23,7 +23,7 @@ import (
 
 var conf = &config.Environment{
 	ExecSync: []string{"echo '1'"},
-	Exec:     []string{"docker run --rm -d nginx"},
+	Exec:     []string{"ping google.com"},
 }
 
 // TestSyncRun tests running environment processes running synchronously
