@@ -203,7 +203,6 @@ func (s *Service) execCheck() (bool, error) {
 		if cmdErr != nil {
 			return false, cmdErr
 		}
-		fmt.Printf("%d\n", len(cmd.Args))
 		checkErr := cmd.Run()
 		if checkErr != nil {
 			return false, checkErr
@@ -249,7 +248,7 @@ func (s *Service) execCreate() error {
 			return passPid(cmd.Process.Pid).(error)
 		}
 	}
-	checkRes := HealthCheck(&s.conf).(error)
+	checkRes := HealthCheck(&s.conf)
 	if checkRes != nil {
 		s.HasFailed = true
 		return checkRes.(error)

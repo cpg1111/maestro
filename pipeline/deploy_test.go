@@ -14,9 +14,9 @@ var testDeploySrv = &Service{
 		TagType:   "git",
 		Path:      ".",
 		BuildCMD:  []string{"echo build"},
-		CheckCMD:  []string{"echo check >> test_file"},
-		CreateCMD: []string{"echo create >> test_file"},
-		UpdateCMD: []string{"echo update >> test_file"},
+		CheckCMD:  []string{"touch check_file"},
+		CreateCMD: []string{"touch create_file"},
+		UpdateCMD: []string{"touch update_file"},
 	},
 	shouldBuild:   true,
 	logFileOffset: 1,
@@ -29,11 +29,11 @@ var testDeploySrv = &Service{
 
 func TestCheck(t *testing.T) {
 	check(testDeploySrv)
-	existErr := util.CheckForFile("test_file")
+	existErr := util.CheckForFile("check_file")
 	if existErr != nil {
 		t.Error(existErr)
 	}
-	err := util.CheckFileContents("test_file", "check\nupdate\n")
+	err := util.CheckFileContents("check_file", "")
 	if err != nil {
 		t.Error(err)
 	}
@@ -41,11 +41,11 @@ func TestCheck(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	create(testDeploySrv)
-	existErr := util.CheckForFile("test_file")
+	existErr := util.CheckForFile("create_file")
 	if existErr != nil {
 		t.Error(existErr)
 	}
-	err := util.CheckFileContents("test_file", "create\n")
+	err := util.CheckFileContents("create_file", "")
 	if err != nil {
 		t.Error(err)
 	}
@@ -53,11 +53,11 @@ func TestCreate(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	update(testDeploySrv)
-	existErr := util.CheckForFile("test_file")
+	existErr := util.CheckForFile("update_file")
 	if existErr != nil {
 		t.Error(existErr)
 	}
-	err := util.CheckFileContents("test_file", "update\n")
+	err := util.CheckFileContents("update_file", "")
 	if err != nil {
 		t.Error(err)
 	}
