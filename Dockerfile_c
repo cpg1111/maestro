@@ -47,5 +47,5 @@ RUN apt-get -qq update && apt-get install -y cmake build-essential pkg-config op
     cd - && \
     rm -rf libgit2-0.22.0 && \
     cd ${GOPATH} && \
-    go get -u github.com/kardianos/govendor
+    go get -u github.com/Masterminds/glide
 ENTRYPOINT ["go"]

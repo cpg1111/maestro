@@ -111,7 +111,7 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCo
 }
 
 func (s *Service) getLogFile() (*os.File, error) {
-	return os.OpenFile(s.conf.BuildLogFilePath, os.O_CREATE|os.O_WRONLY, 0664)
+	return os.OpenFile(s.conf.BuildLogFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
 }
 
 func (s *Service) logToFile(stream string, in *bufio.Scanner) {
@@ -248,7 +248,7 @@ func (s *Service) execCreate() error {
 			return passPid(cmd.Process.Pid).(error)
 		}
 	}
-	checkRes := HealthCheck(&s.conf).(error)
+	checkRes := HealthCheck(&s.conf)
 	if checkRes != nil {
 		s.HasFailed = true
 		return checkRes.(error)

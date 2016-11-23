@@ -75,10 +75,10 @@ get-deps:
 	cd ${GOPATH} && \
 	go get -u github.com/kardianos/govendor && \
 	cd - && \
-	govendor sync
+	glide install
 	rm -rf tmp
 build:
-	govendor sync
+	glide install
 	go build -linkshared -o maestro github.com/cpg1111/maestro/
 	$(LDD_CMD) ./maestro
 install:
@@ -97,6 +97,72 @@ docker:
 	docker build -t maestro_build -f Dockerfile_build .
 	docker build -t maestro_bin_deps -f Dockerfile_bin .
 	docker build -t maestro -f Dockerfile_fully_loaded .
+docker-test:
+	docker build -t maestro_c -f Dockerfile_c .
+	docker build -t maestro_test -f Dockerfile_test .
+	docker run --rm -it \
+	-v ${HOME}/.ssh/:/root/.ssh/ \
+	-v `pwd`:/etc/maestro/ \
+	-v ${DOCKER_CERT_PATH}:${DOCKER_CERT_PATH} \
+	-e DOCKER_HOST=${DOCKER_HOST} \
+	-e DOCKER_MACHINE_NAME=${DOCKER_MACHINE_NAME} \
+	-e DOCKER_TLS_VERIFY=1 \
+	-e DOCKER_CERT_PATH=${DOCKER_CERT_PATH} \
+	maestro_test ./cleanUp/
+	#docker run --rm -it \
+	#-v ${HOME}/.ssh/:/root/.ssh/ \
+	#-v `pwd`:/etc/maestro/ \
+	#-v ${DOCKER_CERT_PATH}:${DOCKER_CERT_PATH} \
+	#-e DOCKER_HOST=${DOCKER_HOST} \
+	#-e DOCKER_MACHINE_NAME=${DOCKER_MACHINE_NAME} \
+	#-e DOCKER_TLS_VERIFY=1 \
+	#-e DOCKER_CERT_PATH=${DOCKER_CERT_PATH} \
+	#maestro_test ./config/
+	docker run --rm -it \
+	-v ${HOME}/.ssh/:/root/.ssh/ \
+	-v `pwd`:/etc/maestro/ \
+	-v ${DOCKER_CERT_PATH}:${DOCKER_CERT_PATH} \
+	-e DOCKER_HOST=${DOCKER_HOST} \
+	-e DOCKER_MACHINE_NAME=${DOCKER_MACHINE_NAME} \
+	-e DOCKER_TLS_VERIFY=1 \
+	-e DOCKER_CERT_PATH=${DOCKER_CERT_PATH} \
+	maestro_test ./credentials/
+	docker run --rm -it \
+	-v ${HOME}/.ssh/:/root/.ssh/ \
+	-v `pwd`:/etc/maestro/ \
+	-v ${DOCKER_CERT_PATH}:${DOCKER_CERT_PATH} \
+	-e DOCKER_HOST=${DOCKER_HOST} \
+	-e DOCKER_MACHINE_NAME=${DOCKER_MACHINE_NAME} \
+	-e DOCKER_TLS_VERIFY=1 \
+	-e DOCKER_CERT_PATH=${DOCKER_CERT_PATH} \
+	maestro_test ./environment/
+	docker run --rm -it \
+	-v ${HOME}/.ssh/:/root/.ssh/ \
+	-v `pwd`:/etc/maestro/ \
+	-v ${DOCKER_CERT_PATH}:${DOCKER_CERT_PATH} \
+	-e DOCKER_HOST=${DOCKER_HOST} \
+	-e DOCKER_MACHINE_NAME=${DOCKER_MACHINE_NAME} \
+	-e DOCKER_TLS_VERIFY=1 \
+	-e DOCKER_CERT_PATH=${DOCKER_CERT_PATH} \
+	maestro_test ./pipeline/
+	docker run --rm -it \
+	-v ${HOME}/.ssh/:/root/.ssh/ \
+	-v `pwd`:/etc/maestro/ \
+	-v ${DOCKER_CERT_PATH}:${DOCKER_CERT_PATH} \
+	-e DOCKER_HOST=${DOCKER_HOST} \
+	-e DOCKER_MACHINE_NAME=${DOCKER_MACHINE_NAME} \
+	-e DOCKER_TLS_VERIFY=1 \
+	-e DOCKER_CERT_PATH=${DOCKER_CERT_PATH} \
+	maestro_test ./statecom/
+	docker run --rm -it \
+	-v ${HOME}/.ssh/:/root/.ssh/ \
+	-v `pwd`:/etc/maestro/ \
+	-v ${DOCKER_CERT_PATH}:${DOCKER_CERT_PATH} \
+	-e DOCKER_HOST=${DOCKER_HOST} \
+	-e DOCKER_MACHINE_NAME=${DOCKER_MACHINE_NAME} \
+	-e DOCKER_TLS_VERIFY=1 \
+	-e DOCKER_CERT_PATH=${DOCKER_CERT_PATH} \
+	maestro_test ./util/
 e2e-test:
 	docker run --rm -it \
 	-v ${HOME}/.ssh/:/root/.ssh/ \

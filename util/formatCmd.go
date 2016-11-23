@@ -55,7 +55,6 @@ func FmtCommand(strCMD, path string) (*exec.Cmd, error) {
 	if lookupErr != nil {
 		return &exec.Cmd{}, lookupErr
 	}
-	cmd := exec.Command(cmdPath)
 	cmdLen := len(cmdArr)
 	for i := 1; i < cmdLen; i++ {
 		if strings.Contains(cmdArr[i], "./") {
@@ -71,7 +70,7 @@ func FmtCommand(strCMD, path string) (*exec.Cmd, error) {
 			}
 			cmdArr[i] = strings.Replace(cmdArr[i], "~", currUser.HomeDir, -1)
 		}
-		cmd.Args = append(cmd.Args, cmdArr[i])
 	}
+	cmd := exec.Command(cmdPath, cmdArr[1:]...)
 	return cmd, nil
 }

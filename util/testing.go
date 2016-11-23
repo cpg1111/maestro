@@ -14,19 +14,26 @@ limitations under the License.
 package util
 
 import (
+	"fmt"
 	"os"
 	"syscall"
 )
 
 // CheckForProcess checks for a running process using the ptrace syscall
 func CheckForProcess(pid int, found chan bool, err chan error) {
-	ptraceErr := syscall.PtraceAttach(pid)
-	if ptraceErr != nil {
-		err <- ptraceErr
+	procDir, readErr := os.Open(fmt.Sprintf("/proc/%d/", pid))
+	if readErr != nil {
+		err <- readErr
 		found <- false
 		return
 	}
-	found <- true
+	stat, statErr := procDir.Stat()
+	if statErr != nil {
+		err <- statErr
+		found <- false
+		return
+	}
+	found <- (stat != nil)
 	syscall.Kill(pid, syscall.SIGKILL)
 }
 
@@ -40,5 +47,28 @@ func CheckForFile(path string) error {
 	if statErr != nil {
 		return statErr
 	}
+	return nil
+}
+
+// CheckFileContents reads a file and compares it to a string
+func CheckFileContents(path, expect string) error {
+	file, openErr := os.Open(path)
+	if openErr != nil {
+		return openErr
+	}
+	var result []byte
+	_, readErr := file.Read(result)
+	if readErr != nil {
+		return readErr
+	}
+	if (string)(result) != expect {
+		return fmt.Errorf(
+			"expected: %s, in file: %s, found: %s",
+			expect,
+			path,
+			(string)(result),
+		)
+	}
+	os.Remove(path)
 	return nil
 }
