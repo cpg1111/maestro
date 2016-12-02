@@ -172,7 +172,7 @@ or
         "docker tag auth <org>/auth:{{.Curr}}",
         "docker run --rm -d <org>/auth:{{.Curr}}"
     ]
-    DependsOn=["database"] # Assume Dockerfile contains FROM models
+    DependsOn=["models"] # Assume Dockerfile contains FROM models
 
     [[Services]]
     Name="client"
@@ -204,10 +204,8 @@ or
 
 ## Roadmap
 
-- Pipeline tests
 - Allow larger log buffers
 - More possible dependency structures
-- Maestrod integration on clean up
 - Encrypted Environment variable values
 - Log Versbosity control
 - Debug with bash session
