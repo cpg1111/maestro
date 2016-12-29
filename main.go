@@ -109,5 +109,5 @@ func main() {
 	log.Println("Cleaning Up Build...")
 	stateCom.CleanUp()
 	cleanUp.Run(&conf.CleanUp, clonePath)
-	stateCom.Done()
+	stateCom.Done(true, *currBuildCommit)
 }

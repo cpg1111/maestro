@@ -96,38 +96,44 @@ func New(conf config.Config, maestrodEndpoint, branch string) *StateCom {
 	return stateCom
 }
 
+func (s *StateCom) send(state interface{}) {
+	payload, marshErr := json.Marshal(state)
+	if marshErr != nil {
+		log.Println("WARNING", marshErr)
+	}
+	payloadRdr := bytes.NewReader(payload)
+	resp, postErr := s.client.Post(
+		fmt.Sprintf(
+			"http://%s:%d/state",
+			s.maestrodHost,
+			s.maestrodPort,
+		),
+		"application/json",
+		payloadRdr,
+	)
+	if postErr != nil {
+		log.Println("WARNING", postErr.Error())
+	}
+	if resp != nil && resp.StatusCode != 201 {
+		log.Println("WARNING STATEUPDATE NOT SENT")
+	}
+}
+
 // Send sends the messages out to maestrod
-func (s *StateCom) Send(state interface{}) {
+func (s *StateCom) Send(state interface{}, bkg bool) {
 	if s.client != nil {
-		go func() {
-			payload, marshErr := json.Marshal(state)
-			if marshErr != nil {
-				log.Println("WARNING", marshErr)
-			}
-			payloadRdr := bytes.NewReader(payload)
-			resp, postErr := s.client.Post(
-				fmt.Sprintf(
-					"http://%s:%d/state",
-					s.maestrodHost,
-					s.maestrodPort,
-				),
-				"application/json",
-				payloadRdr,
-			)
-			if postErr != nil {
-				log.Println("WARNING", postErr.Error())
-			}
-			if resp != nil && resp.StatusCode != 201 {
-				log.Println("WARNING STATEUPDATE NOT SENT")
-			}
-		}()
+		if bkg {
+			go s.send(state)
+		} else {
+			s.send(state)
+		}
 	}
 }
 
 func (s *StateCom) setState(state *State) {
 	state.Project = s.Project
 	state.Branch = s.Branch
-	s.Send(state)
+	s.Send(state, true)
 	s.Global = state
 }
 
@@ -161,9 +167,29 @@ func (s *StateCom) CleanUp() {
 	s.updateState("clean up")
 }
 
+type successPayload struct {
+	Proj   string `json:"project"`
+	Branch string `json:"branch"`
+	Commit string `json:"commit"`
+}
+
+func (s *StateCom) success(commit string) {
+	if s.client != nil {
+		body := successPayload{
+			Proj:   s.Project,
+			Branch: s.Branch,
+			Commit: commit,
+		}
+		s.Send(body, false)
+	}
+}
+
 // Done sets the state of the build to
 // done
-func (s *StateCom) Done() {
+func (s *StateCom) Done(success bool, commit string) {
+	if success {
+		s.success(commit)
+	}
 	s.updateState("done")
 }
 
@@ -178,5 +204,5 @@ func (s *StateCom) SetServiceState(srv *ServiceStateMgr) {
 			TimeStamp:  time.Now(),
 		},
 	}
-	s.Send(srvState)
+	s.Send(srvState, true)
 }
