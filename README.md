@@ -5,9 +5,11 @@ Deploy only what's changed for your multiple services in mono-repos
 
 ## How it Works
 
-Maestro pulls a given repository then builds a dependency tree based on a given config file.
-Once the dependency tree is created, Maestro diffs against a previous commit, with the pathspec being the root directory for each service.
-Maestro the flags only the changed services for the pipeline, which is then ran concurrently per teir of dependencies, therefore siblings will build, test and deploy concurrently, but parents and children dependencies will always be built in the correct order.
+Maestro pulls a given repository then builds a dependency graph based on a given config file.
+Once the dependency graph is created, Maestro diffs against a given previous commit, with the pathspec being the root directory for each artifact.
+Maestro then flags only the changed artifacts for the pipeline, which are then ran concurrently per teir of dependencies, therefore siblings in the graph will build, test and deploy concurrently, but parents and children dependencies will always be built in the correct order.
+
+Used with Maestrod(https://github.com/cpg1111/maestrod) you can have a build manager that integrates with Github webhooks and runs on Kubernetes or a single-host Docker setup.
 
 For more details see this talk: https://www.youtube.com/watch?v=dGM8mYj8nz4&feature=youtu.be
 
