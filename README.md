@@ -9,7 +9,7 @@ Maestro pulls a given repository then builds a dependency graph based on a given
 Once the dependency graph is created, Maestro diffs against a given previous commit, with the pathspec being the root directory for each artifact.
 Maestro then flags only the changed artifacts for the pipeline, which are then ran concurrently per teir of dependencies, therefore siblings in the graph will build, test and deploy concurrently, but parents and children dependencies will always be built in the correct order.
 
-Used with Maestrod(https://github.com/cpg1111/maestrod) you can have a build manager that integrates with Github webhooks and runs on Kubernetes or a single-host Docker setup.
+Used with [Maestrod](https://github.com/cpg1111/maestrod) you can have a build manager that integrates with Github webhooks and runs on Kubernetes or a single-host Docker setup.
 
 For more details see this talk: https://www.youtube.com/watch?v=dGM8mYj8nz4&feature=youtu.be
 
