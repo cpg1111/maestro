@@ -14,7 +14,8 @@ limitations under the License.
 package config
 
 import (
-	"io/ioutil"
+	"io"
+	"os"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -89,24 +90,32 @@ type Config struct {
 	CleanUp     CleanUp
 }
 
-func readConfig(path string) ([]byte, error) {
-	return ioutil.ReadFile(path)
+func decode(r io.Reader) (*Config, error) {
+	var conf Config
+	if _, pErr := toml.DecodeReader(r, &conf); pErr != nil {
+		return &conf, pErr
+	}
+	return &conf, nil
+}
+
+func loadLocal(path string) (*Config, error) {
+	conf, readErr := os.OpenFile(path, os.O_RDONLY, 0644)
+	if readErr != nil {
+		return nil, readErr
+	}
+	return decode(conf)
 }
 
 // Load reads the config and returns a Config struct
 func Load(path, clonePath string) (Config, error) {
-	var conf Config
-	confData, readErr := readConfig(path)
-	if readErr != nil {
-		return conf, readErr
-	}
-	if _, pErr := toml.Decode((string)(confData), &conf); pErr != nil {
-		return conf, pErr
+	conf, rErr := loadLocal(path)
+	if rErr != nil {
+		return *conf, rErr
 	}
 	for i := range conf.Services {
 		if strings.Contains(conf.Services[i].Path, ".") {
 			conf.Services[i].Path = strings.Replace(conf.Services[i].Path, ".", clonePath, 1)
 		}
 	}
-	return conf, nil
+	return *conf, nil
 }
