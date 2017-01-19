@@ -14,11 +14,16 @@ limitations under the License.
 package config
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/aws/aws-sdk-go/aws"
+	awscreds "github.com/aws/aws-sdk-go/aws/credentials"
+	awssession "github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 // HealthCheck is a struct to check for a service's 'upness'
@@ -90,6 +95,28 @@ type Config struct {
 	CleanUp     CleanUp
 }
 
+type remoteConfig struct {
+	Storage string
+	Bucket  string
+	Object  string
+}
+
+func parseRemote(path string) *remoteConfig {
+	storageIdx := strings.Index(path, "://")
+	pathSlice := strings.Split(path[storageIdx+1:], "/")
+	obj := pathSlice[1]
+	if len(pathSlice) > 2 {
+		for i := 2; i < len(pathSlice); i++ {
+			obj = fmt.Sprintf("%s/%s", obj, pathSlice[i])
+		}
+	}
+	return &remoteConfig{
+		Storage: path[0:storageIdx],
+		Bucket:  pathSlice[0],
+		Object:  obj,
+	}
+}
+
 func decode(r io.Reader) (*Config, error) {
 	var conf Config
 	if _, pErr := toml.DecodeReader(r, &conf); pErr != nil {
@@ -99,16 +126,52 @@ func decode(r io.Reader) (*Config, error) {
 }
 
 func loadLocal(path string) (*Config, error) {
-	conf, readErr := os.OpenFile(path, os.O_RDONLY, 0644)
-	if readErr != nil {
-		return nil, readErr
+	conf, err := os.OpenFile(path, os.O_RDONLY, 0644)
+	if err != nil {
+		return nil, err
 	}
 	return decode(conf)
 }
 
+func loadS3(path string) (*Config, error) {
+	remote := parseRemote(path)
+	creds := awscreds.NewEnvCredentials()
+	_, err := creds.Get()
+	if err != nil {
+		return nil, err
+	}
+	config := &aws.Config{
+		Region:           aws.String(os.Getenv("AWS_S3_REGION")),
+		Endpoint:         aws.String("s3.amazonaws.com"),
+		S3ForcePathStyle: aws.Bool(true),
+		Credentials:      creds,
+		LogLevel:         aws.LogLevel(aws.LogLevelType(0)),
+	}
+	session := awssession.New(config)
+	s3Client := s3.New(session)
+	query := &s3.GetObjectInput{
+		Bucket: aws.String(remote.Bucket),
+		Key:    aws.String(remote.Object),
+	}
+	resp, err := s3Client.GetObject(query)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	return decode(resp.Body)
+}
+
 // Load reads the config and returns a Config struct
 func Load(path, clonePath string) (Config, error) {
-	conf, rErr := loadLocal(path)
+	var (
+		conf *Config
+		rErr error
+	)
+	if strings.Contains(path, "s3://") {
+		conf, rErr = loadS3(path)
+	} else {
+		conf, rErr = loadLocal(path)
+	}
 	if rErr != nil {
 		return *conf, rErr
 	}
