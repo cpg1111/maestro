@@ -83,6 +83,7 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 	} else {
 		absPath = clonePath
 	}
+	os.Chdir(absPath)
 	newServices := make(map[string]*Service)
 	for i := range conf.Services {
 		newServices[conf.Services[i].Name] = NewService(conf.Services[i], creds, clonePath, last, curr)
