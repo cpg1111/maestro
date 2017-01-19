@@ -1,12 +1,16 @@
 package: github.com/cpg1111/maestro
 import:
 - package: github.com/BurntSushi/toml
-  version: ^0.2.0
+  version: 0.2.0
 - package: github.com/fatih/structs
 - package: github.com/segmentio/go-prompt
-  version: ^1.2.0
+  version: f3218e418a3d6dbe1dcab5809d80fa6e15c05cb4
 - package: gopkg.in/cheggaaa/pb.v1
-  version: ^1.0.5
+  version: 1.0.5
 - package: gopkg.in/libgit2/git2go.v24
+- package: github.com/aws/aws-sdk-go
+  version: 1.6.13
+  subpackages:
+  - aws
 testImport:
 - package: github.com/fatih/structs
