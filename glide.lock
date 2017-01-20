@@ -1,10 +1,12 @@
-hash: e6b75434bc7b0d21b21a3d677b812d26c12af9ac56b501ecb1010e1ab1d3f916
-updated: 2017-01-20T15:35:04.663222733-05:00
+hash: 6c6b39ff64ee0d4757513db4ac9d60d805341ff5ba2f2fabc55cc050794268a9
+updated: 2017-01-20T15:46:02.842411798-05:00
 imports:
 - name: cloud.google.com/go
   version: c116c7972ec94f148459a304d07a67ecbc770d4b
   subpackages:
   - compute/metadata
+  - internal
+  - internal/optional
   - storage
 - name: github.com/aws/aws-sdk-go
   version: f25c58028ccaa4be2726c172d970ba1cc0f26c99
@@ -40,6 +42,10 @@ imports:
   version: dc3312cb1a4513a366c4c9e622ad55c32df12ed3
 - name: github.com/go-ini/ini
   version: 766e555c68dc8bda90d197ee8946c37519c19409
+- name: github.com/golang/protobuf
+  version: 4bd1920723d7b7c925de087aa32e2187708897f7
+  subpackages:
+  - proto
 - name: github.com/googleapis/gax-go
   version: da06d194a00e19ce00d9011a13931c3f6f6887c7
 - name: github.com/howeyc/gopass
@@ -52,10 +58,22 @@ imports:
   version: b8a2a83acfe6e6770b75de42d5ff4c67596675c0
   subpackages:
   - ssh/terminal
+- name: golang.org/x/net
+  version: 6acef71eb69611914f7a30939ea9f6e194c78172
+  subpackages:
+  - context
+  - context/ctxhttp
+  - http2
+  - http2/hpack
+  - internal/timeseries
+  - trace
 - name: golang.org/x/oauth2
   version: 045497edb6234273d67dbc25da3f2ddbc4c4cacf
   subpackages:
   - google
+  - internal
+  - jws
+  - jwt
 - name: golang.org/x/sys
   version: d75a52659825e75fff6158388dddc6a5b04f9ba5
   subpackages:
@@ -63,13 +81,45 @@ imports:
 - name: google.golang.org/api
   version: b9d03e6e091e36f9a089515bc84cf14c2d199c4c
   subpackages:
+  - gensupport
+  - googleapi
+  - googleapi/internal/uritemplates
+  - googleapi/transport
+  - internal
   - iterator
   - option
+  - storage/v1
   - transport
+- name: google.golang.org/appengine
+  version: 12d5545dc1cfa6047a286d5e853841b6471f4c19
+  subpackages:
+  - internal
+  - internal/app_identity
+  - internal/base
+  - internal/datastore
+  - internal/log
+  - internal/modules
+  - internal/remote_api
+  - internal/socket
+  - internal/urlfetch
+  - socket
+  - urlfetch
 - name: google.golang.org/cloud
   version: c116c7972ec94f148459a304d07a67ecbc770d4b
   subpackages:
   - compute/metadata
+- name: google.golang.org/grpc
+  version: 777daa17ff9b5daef1cfdf915088a2ada3332bf0
+  subpackages:
+  - codes
+  - credentials
+  - credentials/oauth
+  - grpclog
+  - internal
+  - metadata
+  - naming
+  - peer
+  - transport
 - name: gopkg.in/cheggaaa/pb.v1
   version: 9453b2db37f4d8bc63751daca63bbe7049eb5e74
 - name: gopkg.in/libgit2/git2go.v24

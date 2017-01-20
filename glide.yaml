@@ -24,6 +24,7 @@ import:
   - iterator
   - transport
 - package: golang.org/x/oauth2
+  version: 314dd2c0bf3ebd592ec0d20847d27e79d0dbe8dd
   subpackages:
   - google
 - package: github.com/googleapis/gax-go
@@ -31,5 +32,8 @@ import:
   version: ^0.6.0
   subpackages:
   - compute/metadata
+- package: golang.org/x/net
+  subpackages:
+  - context
 testImport:
 - package: github.com/fatih/structs
