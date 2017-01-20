@@ -14,17 +14,35 @@ limitations under the License.
 package util
 
 import (
+	"strings"
+
 	git "gopkg.in/libgit2/git2go.v24"
 )
 
+// GHWorkingCommit is for new branches on Github that have this a previous commit
+const GHWorkingCommit = "0000000000000000000000000000000000000000"
+
 // CommitToTree takes a commit hash and fetches its git tree
 func CommitToTree(repo *git.Repository, hash string) (*git.Tree, error) {
-	commitObj, commitErr := repo.RevparseSingle(hash)
-	if commitErr != nil {
-		return nil, commitErr
+	var (
+		commit    *git.Commit
+		lookupErr error
+	)
+	if strings.Compare(hash, GHWorkingCommit) == 0 {
+		ref, err := repo.Head()
+		if err != nil {
+			return nil, err
+		}
+		oid := ref.Target()
+		commit, lookupErr = repo.LookupCommit(oid)
+	} else {
+		commitObj, commitErr := repo.RevparseSingle(hash)
+		if commitErr != nil {
+			return nil, commitErr
+		}
+		commitID := commitObj.Id()
+		commit, lookupErr = repo.LookupCommit(commitID)
 	}
-	commitID := commitObj.Id()
-	commit, lookupErr := repo.LookupCommit(commitID)
 	if lookupErr != nil {
 		return nil, lookupErr
 	}
