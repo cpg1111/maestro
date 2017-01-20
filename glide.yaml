@@ -12,5 +12,24 @@ import:
   version: 1.6.13
   subpackages:
   - aws
+- package: cloud.google.com/go
+  version: ^0.6.0
+  subpackages:
+  - storage
+  - compute/metadata
+- package: google.golang.org/api
+  version: b9d03e6e091e36f9a089515bc84cf14c2d199c4c
+  subpackages:
+  - option
+  - iterator
+  - transport
+- package: golang.org/x/oauth2
+  subpackages:
+  - google
+- package: github.com/googleapis/gax-go
+- package: google.golang.org/cloud
+  version: ^0.6.0
+  subpackages:
+  - compute/metadata
 testImport:
 - package: github.com/fatih/structs
