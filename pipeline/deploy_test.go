@@ -1,3 +1,16 @@
+/*
+Copyright 2016 Christian Grabowski All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package pipeline
 
 import (
@@ -14,9 +27,9 @@ var testDeploySrv = &Service{
 		TagType:   "git",
 		Path:      ".",
 		BuildCMD:  []string{"echo build"},
-		CheckCMD:  []string{"touch check_file"},
-		CreateCMD: []string{"touch create_file"},
-		UpdateCMD: []string{"touch update_file"},
+		CheckCMD:  []string{"echo check >> test_file"},
+		CreateCMD: []string{"echo create >> test_file"},
+		UpdateCMD: []string{"echo update >> test_file"},
 	},
 	shouldBuild:   true,
 	logFileOffset: 1,
@@ -29,11 +42,11 @@ var testDeploySrv = &Service{
 
 func TestCheck(t *testing.T) {
 	check(testDeploySrv)
-	existErr := util.CheckForFile("check_file")
+	existErr := util.CheckForFile("test_file")
 	if existErr != nil {
 		t.Error(existErr)
 	}
-	err := util.CheckFileContents("check_file", "")
+	err := util.CheckFileContents("test_file", "check\nupdate\n")
 	if err != nil {
 		t.Error(err)
 	}
@@ -41,11 +54,11 @@ func TestCheck(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	create(testDeploySrv)
-	existErr := util.CheckForFile("create_file")
+	existErr := util.CheckForFile("test_file")
 	if existErr != nil {
 		t.Error(existErr)
 	}
-	err := util.CheckFileContents("create_file", "")
+	err := util.CheckFileContents("test_file", "create\n")
 	if err != nil {
 		t.Error(err)
 	}
@@ -53,11 +66,11 @@ func TestCreate(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	update(testDeploySrv)
-	existErr := util.CheckForFile("update_file")
+	existErr := util.CheckForFile("test_file")
 	if existErr != nil {
 		t.Error(existErr)
 	}
-	err := util.CheckFileContents("update_file", "")
+	err := util.CheckFileContents("test_file", "update\n")
 	if err != nil {
 		t.Error(err)
 	}

@@ -14,10 +14,19 @@ limitations under the License.
 package config
 
 import (
-	"io/ioutil"
+	"context"
+	"fmt"
+	"io"
+	"os"
 	"strings"
 
+	gs "cloud.google.com/go/storage"
 	"github.com/BurntSushi/toml"
+	"github.com/aws/aws-sdk-go/aws"
+	awscreds "github.com/aws/aws-sdk-go/aws/credentials"
+	awssession "github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"google.golang.org/api/option"
 )
 
 // HealthCheck is a struct to check for a service's 'upness'
@@ -89,24 +98,108 @@ type Config struct {
 	CleanUp     CleanUp
 }
 
-func readConfig(path string) ([]byte, error) {
-	return ioutil.ReadFile(path)
+type remoteConfig struct {
+	Storage string
+	Bucket  string
+	Object  string
+}
+
+func parseRemote(path string) *remoteConfig {
+	storageIdx := strings.Index(path, "://")
+	pathSlice := strings.Split(path[storageIdx+1:], "/")
+	obj := pathSlice[1]
+	if len(pathSlice) > 2 {
+		for i := 2; i < len(pathSlice); i++ {
+			obj = fmt.Sprintf("%s/%s", obj, pathSlice[i])
+		}
+	}
+	return &remoteConfig{
+		Storage: path[0:storageIdx],
+		Bucket:  pathSlice[0],
+		Object:  obj,
+	}
+}
+
+func decode(r io.Reader) (*Config, error) {
+	var conf Config
+	if _, pErr := toml.DecodeReader(r, &conf); pErr != nil {
+		return &conf, pErr
+	}
+	return &conf, nil
+}
+
+func loadLocal(path string) (*Config, error) {
+	conf, err := os.OpenFile(path, os.O_RDONLY, 0644)
+	if err != nil {
+		return nil, err
+	}
+	return decode(conf)
+}
+
+func loadS3(path string) (*Config, error) {
+	remote := parseRemote(path)
+	creds := awscreds.NewEnvCredentials()
+	_, err := creds.Get()
+	if err != nil {
+		return nil, err
+	}
+	config := &aws.Config{
+		Region:           aws.String(os.Getenv("AWS_S3_REGION")),
+		Endpoint:         aws.String("s3.amazonaws.com"),
+		S3ForcePathStyle: aws.Bool(true),
+		Credentials:      creds,
+		LogLevel:         aws.LogLevel(aws.LogLevelType(0)),
+	}
+	session := awssession.New(config)
+	s3Client := s3.New(session)
+	query := &s3.GetObjectInput{
+		Bucket: aws.String(remote.Bucket),
+		Key:    aws.String(remote.Object),
+	}
+	resp, err := s3Client.GetObject(query)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	return decode(resp.Body)
+}
+
+func loadGStorage(path string) (*Config, error) {
+	remote := parseRemote(path)
+	opts := option.WithServiceAccountFile(os.Getenv("GCLOUD_SVC_ACCNT_FILE"))
+	ctx := context.Background()
+	gsClient, err := gs.NewClient(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	bucket := gsClient.Bucket(remote.Bucket)
+	obj := bucket.Object(remote.Object)
+	rdr, err := obj.NewReader(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer rdr.Close()
+	return decode(rdr)
 }
 
 // Load reads the config and returns a Config struct
 func Load(path, clonePath string) (Config, error) {
-	var conf Config
-	confData, readErr := readConfig(path)
-	if readErr != nil {
-		return conf, readErr
+	var (
+		conf *Config
+		rErr error
+	)
+	if strings.Contains(path, "s3://") {
+		conf, rErr = loadS3(path)
+	} else {
+		conf, rErr = loadLocal(path)
 	}
-	if _, pErr := toml.Decode((string)(confData), &conf); pErr != nil {
-		return conf, pErr
+	if rErr != nil {
+		return *conf, rErr
 	}
 	for i := range conf.Services {
 		if strings.Contains(conf.Services[i].Path, ".") {
 			conf.Services[i].Path = strings.Replace(conf.Services[i].Path, ".", clonePath, 1)
 		}
 	}
-	return conf, nil
+	return *conf, nil
 }

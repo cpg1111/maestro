@@ -74,6 +74,8 @@ func New(conf config.Config, maestrodEndpoint, branch string) *StateCom {
 	var client *http.Client
 	if len(maestrodEndpoint) > 0 {
 		client = &http.Client{}
+	} else {
+		client = nil
 	}
 	mdHost, mdPort := getMaestrodInfo(conf.Project)
 	stateCom := &StateCom{

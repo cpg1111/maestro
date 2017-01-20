@@ -44,8 +44,6 @@ type Service struct {
 	HasFailed     bool
 }
 
-const GHWorkingCommit = "0000000000000000000000000000000000000000"
-
 // NewService returns an instance of a pipeline service
 func NewService(srv config.Service, creds *credentials.RawCredentials, clonePath, last, curr string) *Service {
 	diffPath := util.FmtDiffPath(clonePath, srv.Path)
@@ -90,7 +88,7 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCo
 	diffOpts.Pathspec = []string{s.diffPath}
 	var diff *git.Diff
 	var diffErr error
-	if *currBuildCommit == "" || *currBuildCommit == GHWorkingCommit {
+	if *currBuildCommit == "" {
 		diff, diffErr = diffToWorkingDir(repo, prevTree, &diffOpts)
 	} else {
 		diff, diffErr = diffToMostRecentCommit(repo, prevTree, &diffOpts, *currBuildCommit)
@@ -203,6 +201,7 @@ func (s *Service) execCheck() (bool, error) {
 		if cmdErr != nil {
 			return false, cmdErr
 		}
+		fmt.Printf("%d\n", len(cmd.Args))
 		checkErr := cmd.Run()
 		if checkErr != nil {
 			return false, checkErr

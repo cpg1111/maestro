@@ -123,6 +123,7 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 func (p *Project) Clone() (resRepo *git.Repository, resErr error) {
 	log.Println("Cloning Repo...")
 	resRepo, resErr = git.Clone(p.conf.RepoURL, fmt.Sprintf("%s/", p.clonePath), p.CloneOpts)
+	os.Chdir(p.clonePath)
 	return
 }
 
