@@ -14,16 +14,19 @@ limitations under the License.
 package config
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
+	gs "cloud.google.com/go/storage"
 	"github.com/BurntSushi/toml"
 	"github.com/aws/aws-sdk-go/aws"
 	awscreds "github.com/aws/aws-sdk-go/aws/credentials"
 	awssession "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"google.golang.org/api/option"
 )
 
 // HealthCheck is a struct to check for a service's 'upness'
@@ -159,6 +162,24 @@ func loadS3(path string) (*Config, error) {
 	}
 	defer resp.Body.Close()
 	return decode(resp.Body)
+}
+
+func loadGStorage(path string) (*Config, error) {
+	remote := parseRemote(path)
+	opts := option.WithServiceAccountFile(os.Getenv("GCLOUD_SVC_ACCNT_FILE"))
+	ctx := context.Background()
+	gsClient, err := gs.NewClient(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	bucket := gsClient.Bucket(remote.Bucket)
+	obj := bucket.Object(remote.Object)
+	rdr, err := obj.NewReader(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer rdr.Close()
+	return decode(rdr)
 }
 
 // Load reads the config and returns a Config struct

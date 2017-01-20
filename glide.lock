@@ -1,5 +1,5 @@
-hash: 6c6b39ff64ee0d4757513db4ac9d60d805341ff5ba2f2fabc55cc050794268a9
-updated: 2017-01-20T15:46:02.842411798-05:00
+hash: 570ef4d828e47d08758bab3f2f357dcbda23e395a1ab2d6443f550f2ae7300f8
+updated: 2017-01-20T15:55:58.103718911-05:00
 imports:
 - name: cloud.google.com/go
   version: c116c7972ec94f148459a304d07a67ecbc770d4b
@@ -68,7 +68,7 @@ imports:
   - internal/timeseries
   - trace
 - name: golang.org/x/oauth2
-  version: 045497edb6234273d67dbc25da3f2ddbc4c4cacf
+  version: 314dd2c0bf3ebd592ec0d20847d27e79d0dbe8dd
   subpackages:
   - google
   - internal
