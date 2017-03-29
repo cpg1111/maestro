@@ -30,15 +30,15 @@ func TraverseTree(depSrv *DepService, repo *git.Repository, lastBuildCommit, cur
 	if depSrv == nil {
 		return errors.New("Service is nil in tree")
 	}
-	shouldBuild, buildErr := depSrv.build.ShouldBuild(repo, lastBuildCommit, currBuildCommit)
-	if buildErr != nil {
-		return buildErr
+	shouldBuild, err := depSrv.build.ShouldBuild(repo, lastBuildCommit, currBuildCommit)
+	if err != nil {
+		return err
 	}
 	for i := range depSrv.Children {
 		depSrv.Children[i].build.shouldBuild = shouldBuild
-		travErr := TraverseTree(depSrv.Children[i], repo, lastBuildCommit, currBuildCommit)
-		if travErr != nil {
-			return travErr
+		err = TraverseTree(depSrv.Children[i], repo, lastBuildCommit, currBuildCommit)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
@@ -53,7 +53,7 @@ type DepService struct {
 
 func dependsOnChild(child, parent *DepService) int {
 	for j := range child.build.conf.DependsOn {
-		if parent.Children[child.build.conf.DependsOn[j]] != nil {
+		if _, ok := parent.Children[child.build.conf.DependsOn[j]]; ok {
 			return j
 		}
 	}
@@ -62,14 +62,14 @@ func dependsOnChild(child, parent *DepService) int {
 
 func getDependencies(depSrv *DepService, tree *DepTree, created map[string]*DepService, proj *Project) {
 	for j := range depSrv.build.conf.DependsOn {
-		if created[depSrv.build.conf.DependsOn[j]] != nil {
+		if _, ok := created[depSrv.build.conf.DependsOn[j]]; ok {
 			youngerParentIndex := dependsOnChild(depSrv, created[depSrv.build.conf.DependsOn[j]])
 			if youngerParentIndex > -1 {
 				depSrv.Parent = created[depSrv.build.conf.DependsOn[j]].Children[depSrv.build.conf.DependsOn[youngerParentIndex]]
-				depSrv.Children[depSrv.build.conf.Name] = depSrv
+				depSrv.Parent.Children[depSrv.build.conf.Name] = depSrv
 			} else {
 				depSrv.Parent = created[depSrv.build.conf.DependsOn[j]]
-				if depSrv.Parent.Children[depSrv.build.conf.Name] == nil {
+				if _, ok := depSrv.Parent.Children[depSrv.build.conf.Name]; !ok {
 					depSrv.Parent.Children[depSrv.build.conf.Name] = depSrv
 				}
 			}
@@ -86,7 +86,7 @@ func getDependencies(depSrv *DepService, tree *DepTree, created map[string]*DepS
 				getDependencies(parent, tree, created, proj)
 			} else if tree.CurrNode == nil {
 				tree.CurrNode = parent
-			} else if tree.CurrNode.Children[parent.build.conf.Name] == nil {
+			} else if _, ok := tree.CurrNode.Children[parent.build.conf.Name]; !ok {
 				tree.CurrNode.Children[parent.build.conf.Name] = parent
 			}
 		}
@@ -99,7 +99,7 @@ func NewTreeList(proj *Project) (newTree *DepTree) {
 	newTree = &DepTree{CurrNode: nil}
 	for i := range proj.Services {
 		log.Println("Finding a spot in the tree for", proj.Services[i].conf.Name)
-		if created[proj.Services[i].conf.Name] != nil {
+		if _, ok := created[proj.Services[i].conf.Name]; ok {
 			continue
 		}
 		depSrv := &DepService{build: proj.Services[i], Children: make(map[string]*DepService)}

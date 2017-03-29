@@ -20,16 +20,16 @@ import (
 )
 
 // CheckForProcess checks for a running process using the ptrace syscall
-func CheckForProcess(pid int, found chan bool, err chan error) {
-	procDir, readErr := os.Open(fmt.Sprintf("/proc/%d/", pid))
-	if readErr != nil {
-		err <- readErr
+func CheckForProcess(pid int, found chan bool, errChan chan error) {
+	procDir, err := os.Open(fmt.Sprintf("/proc/%d/", pid))
+	if err != nil {
+		errChan <- readErr
 		found <- false
 		return
 	}
-	stat, statErr := procDir.Stat()
-	if statErr != nil {
-		err <- statErr
+	stat, err := procDir.Stat()
+	if err != nil {
+		errChan <- err
 		found <- false
 		return
 	}
@@ -39,27 +39,27 @@ func CheckForProcess(pid int, found chan bool, err chan error) {
 
 // CheckForFile is self explanatory... checks for files
 func CheckForFile(path string) error {
-	file, openErr := os.Open(path)
-	if openErr != nil {
-		return openErr
+	file, err := os.Open(path)
+	if err != nil {
+		return err
 	}
-	_, statErr := file.Stat()
-	if statErr != nil {
-		return statErr
+	_, err = file.Stat()
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
 // CheckFileContents reads a file and compares it to a string
 func CheckFileContents(path, expect string) error {
-	file, openErr := os.Open(path)
-	if openErr != nil {
-		return openErr
+	file, err := os.Open(path)
+	if err != nil {
+		return err
 	}
 	var result []byte
-	_, readErr := file.Read(result)
-	if readErr != nil {
-		return readErr
+	_, err := file.Read(result)
+	if err != nil {
+		return err
 	}
 	if (string)(result) != expect {
 		return fmt.Errorf(

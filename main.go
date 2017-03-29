@@ -47,9 +47,9 @@ func setEnv(conf *config.Config) {
 	}
 	if len(conf.Environment.Exec) > 0 || len(conf.Environment.ExecSync) > 0 {
 		log.Println("Loading Environment...")
-		envErr := environment.Load(&conf.Environment)
-		if envErr != nil {
-			log.Fatal(envErr)
+		err := environment.Load(&conf.Environment)
+		if err != nil {
+			log.Fatal(err)
 		}
 	}
 }
@@ -74,25 +74,25 @@ func main() {
 	checkNoPrevCommit()
 	clonePath := util.FmtClonePath(clonePath)
 	log.Println("Loading Configuration...")
-	conf, confErr := config.Load(*confPath, *clonePath)
-	if confErr != nil {
-		log.Fatal(confErr)
+	conf, err := config.Load(*confPath, *clonePath)
+	if err != nil {
+		log.Fatal(err)
 	}
 	stateCom := statecom.New(conf, getMaestrodEndpoint(), *checkoutBranch)
 	log.Println("Loading Credentials...")
 	stateCom.Start()
-	creds, credErr := credentials.NewCreds(&conf.Project)
-	if credErr != nil {
-		log.Fatal(credErr)
+	creds, err := credentials.NewCreds(&conf.Project)
+	if err != nil {
+		log.Fatal(err)
 	}
 	stateCom.Env()
 	setEnv(&conf)
 	log.Println("Creating Pipeline...")
 	pipe := pipeline.New(&conf, creds, *clonePath, *checkoutBranch, *lastBuildCommit, *currBuildCommit)
 	stateCom.Cloning()
-	repo, cloneErr := pipe.Clone()
-	if cloneErr != nil {
-		log.Fatal(cloneErr)
+	repo, err := pipe.Clone()
+	if err != nil {
+		log.Fatal(err)
 	}
 	if *currBuildCommit != "" {
 		log.Println("Checking out current commit...")
@@ -101,10 +101,10 @@ func main() {
 	log.Println("Building Dependency Tree...")
 	depTree := pipeline.NewTreeList(pipe)
 	log.Println("Building Serivces...")
-	buildErr := pipeline.Run(depTree, repo, stateCom, lastBuildCommit, currBuildCommit, testAll, deploy)
-	if buildErr != nil {
+	err = pipeline.Run(depTree, repo, stateCom, lastBuildCommit, currBuildCommit, testAll, deploy)
+	if err != nil {
 		os.RemoveAll(*clonePath)
-		log.Fatal(buildErr)
+		log.Fatal(err)
 	}
 	log.Println("Cleaning Up Build...")
 	stateCom.CleanUp()

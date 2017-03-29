@@ -19,20 +19,20 @@ import (
 
 func check(srv *Service) error {
 	log.Println("Checking whether to update or create", srv.conf.Name)
-	check, checkErr := srv.execCheck()
-	if checkErr != nil {
-		log.Println(checkErr)
+	check, err := srv.execCheck()
+	if err != nil {
+		log.Println(err)
 	}
 	if check {
 		log.Println("Found service,", srv.conf.Name, "updating now")
-		err := update(srv)
+		err = update(srv)
 		if err != nil {
 			log.Println(srv.conf.UpdateCMD, err)
 			return err
 		}
 	} else {
 		log.Println("Creating new service", srv.conf.Name)
-		err := create(srv)
+		err = create(srv)
 		if err != nil {
 			log.Println(srv.conf.CreateCMD, err)
 			return err
@@ -42,17 +42,9 @@ func check(srv *Service) error {
 }
 
 func create(srv *Service) error {
-	err := srv.execCreate()
-	if err != nil {
-		return err
-	}
-	return nil
+	return srv.execCreate()
 }
 
 func update(srv *Service) error {
-	err := srv.execUpdate()
-	if err != nil {
-		return err
-	}
-	return nil
+	return srv.execUpdate()
 }

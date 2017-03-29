@@ -122,8 +122,8 @@ func parseRemote(path string) *remoteConfig {
 
 func decode(r io.Reader) (*Config, error) {
 	var conf Config
-	if _, pErr := toml.DecodeReader(r, &conf); pErr != nil {
-		return &conf, pErr
+	if _, err := toml.DecodeReader(r, &conf); err != nil {
+		return &conf, err
 	}
 	return &conf, nil
 }
@@ -186,15 +186,15 @@ func loadGStorage(path string) (*Config, error) {
 func Load(path, clonePath string) (Config, error) {
 	var (
 		conf *Config
-		rErr error
+		err  error
 	)
 	if strings.Contains(path, "s3://") {
-		conf, rErr = loadS3(path)
+		conf, err = loadS3(path)
 	} else {
-		conf, rErr = loadLocal(path)
+		conf, err = loadLocal(path)
 	}
-	if rErr != nil {
-		return *conf, rErr
+	if err != nil {
+		return *conf, err
 	}
 	for i := range conf.Services {
 		if strings.Contains(conf.Services[i].Path, ".") {
