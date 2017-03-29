@@ -71,9 +71,9 @@ func runServiceBuild(srvs map[string]*DepService, stateCom *statecom.StateCom, t
 			log.Println("Building", srvs[i].build.conf.Name)
 			go build(srvs[i], i, stateCom, doneChan, errChan, shouldDeploy)
 		} else {
-			runErr := runServiceBuild(srvs[i].Children, stateCom, testAll, shouldDeploy)
-			if runErr != nil {
-				return runErr
+			err := runServiceBuild(srvs[i].Children, stateCom, testAll, shouldDeploy)
+			if err != nil {
+				return err
 			}
 		}
 	}

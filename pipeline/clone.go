@@ -26,6 +26,12 @@ import (
 	git "gopkg.in/libgit2/git2go.v24"
 )
 
+var (
+	progbar     *pb.ProgressBar
+	received    uint
+	hasFinished = false
+)
+
 // Project is a struct for the Project in the pipeline
 type Project struct {
 	conf      config.Project
@@ -47,12 +53,6 @@ func credCB(gitCreds *git.Cred) git.CredentialsCallback {
 func certCheckCB(cert *git.Certificate, valid bool, hostname string) git.ErrorCode {
 	return 0
 }
-
-var (
-	progbar     *pb.ProgressBar
-	received    uint
-	hasFinished = false
-)
 
 func handleProgress(stats git.TransferProgress) git.ErrorCode {
 	if progbar == nil {
@@ -77,7 +77,10 @@ func handleComplete(complete git.RemoteCompletion) git.ErrorCode {
 // New returns a new instance of a pipeline project
 func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, branch, last, curr string) *Project {
 	var absPath string
-	cwd, cwdErr := os.Getwd()
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
 	if clonePath[0] == '.' {
 		absPath = fmt.Sprintf("%s/%s", cwd, clonePath)
 	} else {
@@ -86,9 +89,6 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 	newServices := make(map[string]*Service)
 	for i := range conf.Services {
 		newServices[conf.Services[i].Name] = NewService(conf.Services[i], creds, clonePath, last, curr)
-	}
-	if cwdErr != nil {
-		panic(cwdErr)
 	}
 	gitCreds := creds.ToGitCredentials()
 	fetchOpts := &git.FetchOptions{
@@ -120,18 +120,18 @@ func New(conf *config.Config, creds *credentials.RawCredentials, clonePath, bran
 }
 
 // Clone clones a git repo
-func (p *Project) Clone() (resRepo *git.Repository, resErr error) {
+func (p *Project) Clone() (repo *git.Repository, err error) {
 	log.Println("Cloning Repo...")
-	resRepo, resErr = git.Clone(p.conf.RepoURL, fmt.Sprintf("%s/", p.clonePath), p.CloneOpts)
+	repo, err = git.Clone(p.conf.RepoURL, fmt.Sprintf("%s/", p.clonePath), p.CloneOpts)
 	os.Chdir(p.clonePath)
 	return
 }
 
 // Checkout checks out the repo to the current commit or HEAD of the branch
 func (p *Project) Checkout(repo *git.Repository, commit string) error {
-	tree, treeErr := util.CommitToTree(repo, commit)
-	if treeErr != nil {
-		return treeErr
+	tree, err := util.CommitToTree(repo, commit)
+	if err != nil {
+		return err
 	}
 	opts := &git.CheckoutOpts{}
 	return repo.CheckoutTree(tree, opts)

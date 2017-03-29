@@ -43,29 +43,19 @@ type concurrentEnvJob struct {
 
 func (c *concurrentEnvJob) Run(pid chan int, status chan error) {
 	log.Println("Running", c.cmd.Args)
-	err := c.cmd.Start()
-	if err != nil {
-		status <- err
-	} else {
-		status <- nil
-	}
+	status <- c.cmd.Start()
 	pid <- c.cmd.Process.Pid
-	err = c.cmd.Wait()
-	if err != nil {
-		status <- err
-	} else {
-		status <- nil
-	}
+	status <- c.cmd.Wait()
 }
 
 func newJob(cmdStr string, sync bool) envJob {
-	pwd, pwdErr := os.Getwd()
-	if pwdErr != nil {
-		panic(pwdErr)
+	pwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
 	}
-	cmd, cmdErr := util.FmtCommand(cmdStr, pwd)
-	if cmdErr != nil {
-		panic(cmdErr)
+	cmd, err := util.FmtCommand(cmdStr, pwd)
+	if err != nil {
+		panic(err)
 	}
 	if sync {
 		return syncEnvJob{

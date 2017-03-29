@@ -34,16 +34,18 @@ type RawCredentials struct {
 
 // ToGitCredentials converts RawCredentials to Git credentials
 func (rc *RawCredentials) ToGitCredentials() git.Cred {
-	var num int
-	var creds git.Cred
-	switch rc.project.AuthType {
-	case "SSH":
+	var (
+		num   int
+		creds git.Cred
+	)
+	switch strings.ToLower(rc.project.AuthType) {
+	case "ssh":
 		num, creds = git.NewCredSshKey(rc.Username, rc.SSHPubKey, rc.SSHPrivKey, rc.Password)
 		if num != 0 {
 			panic("GIT ERROR WHEN LOADING CREDENTIALS")
 		}
 		return creds
-	case "HTTP":
+	case "http":
 		num, creds = git.NewCredUserpassPlaintext(rc.Username, rc.Password)
 		if num != 0 {
 			panic("GIT ERROR WHEN LOADING CREDENTIALS")
@@ -56,9 +58,9 @@ func (rc *RawCredentials) ToGitCredentials() git.Cred {
 func readKey(path string) (string, error) {
 	fullPath := path
 	if strings.Contains(path, "~") {
-		currUser, uErr := user.Current()
-		if uErr != nil {
-			return "", uErr
+		currUser, err := user.Current()
+		if err != nil {
+			return "", err
 		}
 		fullPath = strings.Replace(path, "~", currUser.HomeDir, 1)
 	}
@@ -67,19 +69,20 @@ func readKey(path string) (string, error) {
 
 // NewCreds returns a pointer to a new instance of RawCredentials
 func NewCreds(project *config.Project) (*RawCredentials, error) {
-	var privKey, pubKey string
-	var privErr, pubErr error
-	if strings.Contains(project.AuthType, "SSH") {
-		privKey, privErr = readKey(project.SSHPrivKeyPath)
-		if privErr != nil {
-			return nil, privErr
+	var (
+		privKey, pubKey, pwd string
+		err                  error
+	)
+	if strings.Contains(strings.ToLowercase(project.AuthType), "ssh") {
+		privKey, err = readKey(project.SSHPrivKeyPath)
+		if err != nil {
+			return nil, err
 		}
-		pubKey, pubErr = readKey(project.SSHPubKeyPath)
-		if pubErr != nil {
-			return nil, pubErr
+		pubKey, err = readKey(project.SSHPubKeyPath)
+		if err != nil {
+			return nil, err
 		}
 	}
-	var pwd string
 	if project.PromptForPWD {
 		pwd = prompt.PasswordMasked("Please Enter Your Password")
 	} else {

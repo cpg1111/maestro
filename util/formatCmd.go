@@ -32,13 +32,13 @@ type Commits struct {
 func TemplateCommits(strCMD, lastCommit, currCommit string) (string, error) {
 	buff := &bytes.Buffer{}
 	commits := &Commits{Prev: lastCommit, Curr: currCommit}
-	tmpl, tmplErr := template.New("cmd").Parse(strCMD)
-	if tmplErr != nil {
-		return "", tmplErr
+	tmpl, err := template.New("cmd").Parse(strCMD)
+	if err != nil {
+		return "", err
 	}
-	tmplExecErr := tmpl.Execute(buff, commits)
-	if tmplExecErr != nil {
-		return "", tmplExecErr
+	err = tmpl.Execute(buff, commits)
+	if err != nil {
+		return "", err
 	}
 	return buff.String(), nil
 }
@@ -51,9 +51,9 @@ func FmtCommand(strCMD, path string) (*exec.Cmd, error) {
 	} else {
 		cmdArr = strings.Split(strCMD, " ")
 	}
-	cmdPath, lookupErr := exec.LookPath(cmdArr[0])
-	if lookupErr != nil {
-		return &exec.Cmd{}, lookupErr
+	cmdPath, err := exec.LookPath(cmdArr[0])
+	if err != nil {
+		return nil, err
 	}
 	cmdLen := len(cmdArr)
 	for i := 1; i < cmdLen; i++ {
@@ -64,9 +64,9 @@ func FmtCommand(strCMD, path string) (*exec.Cmd, error) {
 			cmdArr[i] = strings.Replace(cmdArr[i], "./", path, -1)
 		}
 		if strings.Contains(cmdArr[i], "~") {
-			currUser, userErr := user.Current()
-			if userErr != nil {
-				return &exec.Cmd{}, userErr
+			currUser, err := user.Current()
+			if err != nil {
+				return &exec.Cmd{}, err
 			}
 			cmdArr[i] = strings.Replace(cmdArr[i], "~", currUser.HomeDir, -1)
 		}

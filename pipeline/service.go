@@ -65,9 +65,9 @@ func diffToWorkingDir(repo *git.Repository, prev *git.Tree, opts *git.DiffOption
 }
 
 func diffToMostRecentCommit(repo *git.Repository, prev *git.Tree, opts *git.DiffOptions, currCommit string) (*git.Diff, error) {
-	currTree, treeErr := util.CommitToTree(repo, currCommit)
-	if treeErr != nil {
-		return nil, treeErr
+	currTree, err := util.CommitToTree(repo, currCommit)
+	if err != nil {
+		return nil, err
 	}
 	return repo.DiffTreeToTree(prev, currTree, opts)
 }
@@ -77,28 +77,27 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCo
 	if s.shouldBuild {
 		return s.shouldBuild, nil
 	}
-	prevTree, treeErr := util.CommitToTree(repo, *lastBuildCommit)
-	if treeErr != nil {
-		return false, treeErr
+	prevTree, err := util.CommitToTree(repo, *lastBuildCommit)
+	if err != nil {
+		return false, err
 	}
-	diffOpts, optsErr := git.DefaultDiffOptions()
-	if optsErr != nil {
-		return false, optsErr
+	diffOpts, err := git.DefaultDiffOptions()
+	if err != nil {
+		return false, err
 	}
 	diffOpts.Pathspec = []string{s.diffPath}
 	var diff *git.Diff
-	var diffErr error
 	if *currBuildCommit == "" {
-		diff, diffErr = diffToWorkingDir(repo, prevTree, &diffOpts)
+		diff, err = diffToWorkingDir(repo, prevTree, &diffOpts)
 	} else {
-		diff, diffErr = diffToMostRecentCommit(repo, prevTree, &diffOpts, *currBuildCommit)
+		diff, err = diffToMostRecentCommit(repo, prevTree, &diffOpts, *currBuildCommit)
 	}
-	if diffErr != nil {
+	if err != nil {
 		return false, diffErr
 	}
-	deltas, deltaErr := diff.NumDeltas()
-	if deltaErr != nil {
-		return false, deltaErr
+	deltas, err := diff.NumDeltas()
+	if err != nil {
+		return false, err
 	}
 	if deltas == 0 {
 		return false, nil
@@ -113,36 +112,36 @@ func (s *Service) getLogFile() (*os.File, error) {
 }
 
 func (s *Service) logToFile(stream string, in *bufio.Scanner) {
-	out, fileErr := s.getLogFile()
-	if fileErr != nil {
-		panic(fileErr)
+	out, err := s.getLogFile()
+	if err != nil {
+		panic(err)
 	}
 	defer out.Close()
 	for in.Scan() {
 		text := fmt.Sprintf("%s %s: %s\n", time.Now(), stream, in.Text())
-		_, writeErr := out.WriteString(text)
-		if writeErr != nil {
-			panic(writeErr)
+		_, err = out.WriteString(text)
+		if err != nil {
+			panic(err)
 		}
 	}
-	syncErr := out.Sync()
-	if syncErr != nil {
-		panic(syncErr)
+	err = out.Sync()
+	if err != nil {
+		panic(err)
 	}
-	inErr := in.Err()
-	if inErr != nil && inErr.Error() != "read |0: bad file descriptor" {
-		panic(inErr)
+	err = in.Err()
+	if err != nil && err.Error() != "read |0: bad file descriptor" {
+		panic(err)
 	}
 }
 
 func (s *Service) logStdoutToFile(cmd *exec.Cmd) error {
-	stdout, outErr := cmd.StdoutPipe()
-	if outErr != nil {
-		return outErr
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
 	}
-	stderr, errErr := cmd.StderrPipe()
-	if errErr != nil {
-		return errErr
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
 	}
 	in1 := bufio.NewScanner(stdout)
 	in2 := bufio.NewScanner(stderr)
@@ -155,34 +154,34 @@ func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
 	if cmdStr == "" {
 		return nil, errors.New("empty string is not a valid command")
 	}
-	cmdStr, tmplErr := util.TemplateCommits(cmdStr, s.lastCommit, s.currCommit)
-	if tmplErr != nil {
+	cmdStr, err := util.TemplateCommits(cmdStr, s.lastCommit, s.currCommit)
+	if err != nil {
 		log.Println(tmplErr)
 		return nil, tmplErr
 	}
-	cmd, cmdErr := util.FmtCommand(cmdStr, path)
-	if cmdErr != nil {
-		log.Println(cmdErr)
-		return cmd, cmdErr
+	cmd, err := util.FmtCommand(cmdStr, path)
+	if err != nil {
+		log.Println(err)
+		return cmd, err
 	}
 	log.Printf("Running %v\n", cmd.Args)
 	if s.conf.BuildLogFilePath != "" {
-		stdoutErr := s.logStdoutToFile(cmd)
-		if stdoutErr != nil {
-			return cmd, stdoutErr
+		err = s.logStdoutToFile(cmd)
+		if err != nil {
+			return cmd, err
 		}
-		runErr := cmd.Run()
-		if runErr != nil {
-			log.Println(runErr)
-			return cmd, runErr
+		err = cmd.Run()
+		if err != nil {
+			log.Println(err)
+			return cmd, err
 		}
 	} else {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
-		runErr := cmd.Run()
-		if runErr != nil {
-			log.Println(runErr)
-			return cmd, runErr
+		err := cmd.Run()
+		if err != nil {
+			log.Println(err)
+			return cmd, err
 		}
 	}
 	return cmd, nil
@@ -193,18 +192,18 @@ func (s *Service) execCheck() (bool, error) {
 		if s.conf.CheckCMD[i] == "" {
 			continue
 		}
-		cmdStr, tmplErr := util.TemplateCommits(s.conf.CheckCMD[i], s.lastCommit, s.currCommit)
-		if tmplErr != nil {
-			return false, tmplErr
+		cmdStr, err := util.TemplateCommits(s.conf.CheckCMD[i], s.lastCommit, s.currCommit)
+		if err != nil {
+			return false, err
 		}
-		cmd, cmdErr := util.FmtCommand(cmdStr, s.conf.Path)
-		if cmdErr != nil {
-			return false, cmdErr
+		cmd, err := util.FmtCommand(cmdStr, s.conf.Path)
+		if err != nil {
+			return false, err
 		}
 		fmt.Printf("%d\n", len(cmd.Args))
-		checkErr := cmd.Run()
-		if checkErr != nil {
-			return false, checkErr
+		err = cmd.Run()
+		if err != nil {
+			return false, err
 		}
 	}
 	return true, nil

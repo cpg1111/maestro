@@ -58,10 +58,10 @@ func getMaestrodInfo(conf config.Project) (host string, port int) {
 		host = conf.MaestrodHost
 	}
 	if len(conf.MaestrodPortEnv) > 0 {
-		var pErr error
-		port, pErr = strconv.Atoi(os.Getenv(conf.MaestrodPortEnv))
-		if pErr != nil {
-			panic(pErr)
+		var err error
+		port, err := strconv.Atoi(os.Getenv(conf.MaestrodPortEnv))
+		if err != nil {
+			panic(err)
 		}
 	} else {
 		port = conf.MaestrodPort
@@ -99,12 +99,12 @@ func New(conf config.Config, maestrodEndpoint, branch string) *StateCom {
 }
 
 func (s *StateCom) send(state interface{}) {
-	payload, marshErr := json.Marshal(state)
-	if marshErr != nil {
-		log.Println("WARNING", marshErr)
+	payload, err := json.Marshal(state)
+	if err != nil {
+		log.Println("WARNING", err)
 	}
 	payloadRdr := bytes.NewReader(payload)
-	resp, postErr := s.client.Post(
+	resp, err := s.client.Post(
 		fmt.Sprintf(
 			"http://%s:%d/state",
 			s.maestrodHost,
@@ -113,8 +113,8 @@ func (s *StateCom) send(state interface{}) {
 		"application/json",
 		payloadRdr,
 	)
-	if postErr != nil {
-		log.Println("WARNING", postErr.Error())
+	if err != nil {
+		log.Println("WARNING", err.Error())
 	}
 	if resp != nil && resp.StatusCode != 201 {
 		log.Println("WARNING STATEUPDATE NOT SENT")

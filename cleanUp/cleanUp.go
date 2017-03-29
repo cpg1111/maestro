@@ -22,19 +22,19 @@ import (
 )
 
 func handleCMDs(cmds []string) error {
-	pwd, pwdErr := os.Getwd()
-	if pwdErr != nil {
+	pwd, err := os.Getwd()
+	if err != nil {
 		return pwdErr
 	}
 	if len(cmds) > 0 {
 		for i := range cmds {
-			cmd, cmdErr := util.FmtCommand(cmds[i], pwd)
-			if cmdErr != nil {
-				return cmdErr
+			cmd, err := util.FmtCommand(cmds[i], pwd)
+			if err != nil {
+				return err
 			}
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
-			err := cmd.Run()
+			err = cmd.Run()
 			if err != nil {
 				return err
 			}
@@ -46,39 +46,26 @@ func handleCMDs(cmds []string) error {
 func saveArtifacts(artifacts []config.Artifact) error {
 	artifactsLen := len(artifacts)
 	if artifactsLen > 0 {
-		finished := make(chan bool)
-		err := make(chan error)
+		errChan := make(chan error)
 		for i := range artifacts {
 			go func() {
-				buildFile, readErr := ioutil.ReadFile(artifacts[i].RuntimeFilePath)
-				if readErr != nil {
-					err <- readErr
-					finished <- false
+				buildFile, err := ioutil.ReadFile(artifacts[i].RuntimeFilePath)
+				if err != nil {
+					errChan <- err
 				} else {
-					writeErr := ioutil.WriteFile(artifacts[i].SaveFilePath, buildFile, 0644)
-					if writeErr != nil {
-						err <- writeErr
-						finished <- false
-					} else {
-						finished <- true
-					}
+					errChan <- ioutil.WriteFile(artifacts[i].SaveFilePath, buildFile, 0644)
 				}
 			}()
 		}
 		total := 0
 		for {
-			select {
-			case done := <-finished:
-				if done {
-					total++
-				}
-				if total == artifactsLen {
-					return nil
-				}
-			case errMsg := <-err:
-				if errMsg != nil {
-					return errMsg
-				}
+			err := <-errChan
+			if err != nil {
+				return err
+			}
+			total++
+			if total == artifactsLen {
+				break
 			}
 		}
 	}
@@ -87,13 +74,13 @@ func saveArtifacts(artifacts []config.Artifact) error {
 
 // Run runs the clean tasks
 func Run(conf *config.CleanUp, clonePath *string) error {
-	cmdErr := handleCMDs(conf.AdditionalCMDs)
-	if cmdErr != nil {
-		return cmdErr
+	err := handleCMDs(conf.AdditionalCMDs)
+	if err != nil {
+		return err
 	}
-	artifactErr := saveArtifacts(conf.Artifacts)
-	if artifactErr != nil {
-		return artifactErr
+	err = saveArtifacts(conf.Artifacts)
+	if err != nil {
+		return err
 	}
 	if conf.InDaemon {
 		// TODO send status to daemon

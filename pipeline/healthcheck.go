@@ -30,9 +30,9 @@ import (
 const PTAttach = "PTRACE_ATTACH"
 
 func healthcheckCMD(cmd, path string) error {
-	fmtCMD, fmtCMDErr := util.FmtCommand(cmd, path)
-	if fmtCMDErr != nil {
-		return fmtCMDErr
+	fmtCMD, err := util.FmtCommand(cmd, path)
+	if err != nil {
+		return err
 	}
 	fmtCMD.Stdout = os.Stdout
 	fmtCMD.Stdout = os.Stderr
@@ -40,17 +40,17 @@ func healthcheckCMD(cmd, path string) error {
 }
 
 func healthcheckHTTPGet(endpoint, response string) error {
-	resp, respErr := http.Get(endpoint)
-	if respErr != nil {
-		return respErr
+	resp, err := http.Get(endpoint)
+	if err != nil {
+		return err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("Expected a status of 200 on endpoint '%s' but received '%d'", endpoint, resp.StatusCode)
 	}
-	body, bodyErr := ioutil.ReadAll(resp.Body)
-	if bodyErr != nil {
-		return bodyErr
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
 	}
 	if !strings.Contains((string)(body), response) {
 		return errors.New("HTTP GET body does not match expected response")
@@ -59,9 +59,9 @@ func healthcheckHTTPGet(endpoint, response string) error {
 }
 
 func healthcheckICMPPing(ip string) error {
-	_, connErr := net.Dial("ip:icmp", ip)
-	if connErr != nil {
-		return connErr
+	_, err := net.Dial("ip:icmp", ip)
+	if err != nil {
+		return err
 	}
 	return nil
 }
