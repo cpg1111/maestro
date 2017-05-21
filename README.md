@@ -16,58 +16,15 @@ For more details see this talk: https://www.youtube.com/watch?v=dGM8mYj8nz4&feat
 ## Install
 
 ```
-    go get -d github.com/cpg1111/maestro
+    git clone git@github.com:cpg1111/maestro
     cd maestro
+    make docker
 ```
 
 or
 
 ```
-    git clone git@github.com/cpg1111/maestro.git
-    cd maestro
-```
-
-or
-
-```
-    curl -L -o <target path> -z <target path> https://github.com/cpg1111/maestro/releases/download/v0.1.0/maestro-0.1.0-<arch>.tar.gz
-    tar -C <target directory> xzvf maestro-0.1.0-<arch>.tar.gz
-    cd <target directory>/maestro-0.1.0-<arch>
-```
-
-or
-
-```
-    wget https://github.com/cpg1111/maestro/releases/download/v0.1.0/maestro-0.1.0-<arch>.tar.gz
-    tar -C <target directory> xzvf maestro-0.1.0-<arch>.tar.gz
-    cd <target directory>/maestro-0.1.0-<arch>
-```
-
-or
-
-```
-    # This one handles everything but running maestro
-    docker pull cpg1111/maestro
-```
-
-then
-
-```
-    docker build -t maestro_c -f Dockerfile_c .
-    docker build -t maestro_build -f Dockerfile_build .
-```
-
-then either:
-
-```
-    docker build -t maestro .
-```
-
-or
-
-```
-    docker build -t maestro_bin_deps -f Dockerfile_bin .
-    docker build -t maestro -f Dockerfile_fully_loaded . # gives you certain common executables for building, testing and deploying
+    docker pull cpg1111/maestro:<release>
 ```
 
 ## Test
