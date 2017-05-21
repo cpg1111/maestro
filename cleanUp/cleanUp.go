@@ -24,7 +24,7 @@ import (
 func handleCMDs(cmds []string) error {
 	pwd, err := os.Getwd()
 	if err != nil {
-		return pwdErr
+		return err
 	}
 	if len(cmds) > 0 {
 		for i := range cmds {

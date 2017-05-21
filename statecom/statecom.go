@@ -59,7 +59,7 @@ func getMaestrodInfo(conf config.Project) (host string, port int) {
 	}
 	if len(conf.MaestrodPortEnv) > 0 {
 		var err error
-		port, err := strconv.Atoi(os.Getenv(conf.MaestrodPortEnv))
+		port, err = strconv.Atoi(os.Getenv(conf.MaestrodPortEnv))
 		if err != nil {
 			panic(err)
 		}

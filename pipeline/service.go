@@ -93,7 +93,7 @@ func (s *Service) ShouldBuild(repo *git.Repository, lastBuildCommit, currBuildCo
 		diff, err = diffToMostRecentCommit(repo, prevTree, &diffOpts, *currBuildCommit)
 	}
 	if err != nil {
-		return false, diffErr
+		return false, err
 	}
 	deltas, err := diff.NumDeltas()
 	if err != nil {
@@ -156,8 +156,8 @@ func (s *Service) execSrvCmd(cmdStr, path string) (*exec.Cmd, error) {
 	}
 	cmdStr, err := util.TemplateCommits(cmdStr, s.lastCommit, s.currCommit)
 	if err != nil {
-		log.Println(tmplErr)
-		return nil, tmplErr
+		log.Println(err)
+		return nil, err
 	}
 	cmd, err := util.FmtCommand(cmdStr, path)
 	if err != nil {
