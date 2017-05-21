@@ -23,7 +23,7 @@ import (
 func CheckForProcess(pid int, found chan bool, errChan chan error) {
 	procDir, err := os.Open(fmt.Sprintf("/proc/%d/", pid))
 	if err != nil {
-		errChan <- readErr
+		errChan <- err
 		found <- false
 		return
 	}
@@ -57,7 +57,7 @@ func CheckFileContents(path, expect string) error {
 		return err
 	}
 	var result []byte
-	_, err := file.Read(result)
+	_, err = file.Read(result)
 	if err != nil {
 		return err
 	}

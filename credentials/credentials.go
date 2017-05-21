@@ -73,7 +73,7 @@ func NewCreds(project *config.Project) (*RawCredentials, error) {
 		privKey, pubKey, pwd string
 		err                  error
 	)
-	if strings.Contains(strings.ToLowercase(project.AuthType), "ssh") {
+	if strings.Contains(strings.ToLower(project.AuthType), "ssh") {
 		privKey, err = readKey(project.SSHPrivKeyPath)
 		if err != nil {
 			return nil, err
